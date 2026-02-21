@@ -630,7 +630,7 @@ function DemoSearchBar() {
             setScrolled(window.scrollY > 80);
             // debounce: only hide chat after 350ms of continuous scroll
             if (hideTimer) clearTimeout(hideTimer);
-            hideTimer = setTimeout(() => setChatHidden(true), 350);
+            hideTimer = setTimeout(() => setChatHidden(true), 120);
         };
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => {
@@ -674,7 +674,7 @@ function DemoSearchBar() {
             <AnimatePresence>
                 {messages.length > 0 && !chatHidden && (
                     <div className="fixed z-[60] pointer-events-none"
-                        style={{ bottom: 88, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                        style={{ bottom: 96, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
                         <motion.div
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -716,8 +716,8 @@ function DemoSearchBar() {
                                 </div>
                             </div>
                             {chatCount > 0 && chatCount < MAX_FREE && (
-                                <div className="flex justify-end mt-2">
-                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                                <div className="flex justify-end px-1 pb-0.5">
+                                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>
                                         {MAX_FREE - chatCount} free {MAX_FREE - chatCount === 1 ? 'search' : 'searches'} left
                                     </span>
                                 </div>
@@ -751,7 +751,7 @@ function DemoSearchBar() {
                             <Send style={{ width: 11, height: 11, color: query.trim() ? '#fff' : 'rgba(255,255,255,0.3)' }} />
                         </button>
                         {messages.length > 0 && (
-                            <button type="button" onClick={() => setChatHidden(h => !h)}
+                            <button type="button" onClick={() => { setChatHidden(h => !h); setQuery(''); }}
                                 className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
                                 style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
                                 title={chatHidden ? 'Show chat' : 'Hide chat'}>
