@@ -630,24 +630,15 @@ function DemoSearchBar() {
     const [loading, setLoading] = useState(false);
     const [chatCount, setChatCount] = useState(0);
     const [showGate, setShowGate] = useState(false);
-    const [chatHidden, setChatHidden] = useState(true);
+    const [chatHidden, setChatHidden] = useState(false);
     const chatRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const MAX_FREE = 4;
 
     useEffect(() => {
-        let hideTimer: ReturnType<typeof setTimeout> | null = null;
-        const onScroll = () => {
-            setScrolled(window.scrollY > 80);
-            // debounce: only hide chat after 350ms of continuous scroll
-            if (hideTimer) clearTimeout(hideTimer);
-            hideTimer = setTimeout(() => setChatHidden(true), 120);
-        };
+        const onScroll = () => setScrolled(window.scrollY > 80);
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => {
-            window.removeEventListener('scroll', onScroll);
-            if (hideTimer) clearTimeout(hideTimer);
-        };
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     useEffect(() => {
@@ -746,13 +737,11 @@ function DemoSearchBar() {
                     transition={{ type: 'spring', stiffness: 260, damping: 32, mass: 0.8 }}
                     style={{ pointerEvents: 'auto', maxWidth: 'calc(100vw - 32px)' }}>
                     <form onSubmit={e => { e.preventDefault(); send(); }}
-                        onClick={() => { if (messages.length > 0) setChatHidden(false); }}
                         className="flex items-center gap-2 px-4 py-3.5 rounded-full"
                         style={{ background: barBg, border: `1px solid ${barBdr}`, backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', outline: 'none' }}>
                         <Search className="shrink-0" style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }} />
                         <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-                            onFocus={() => { if (messages.length > 0) setChatHidden(false); }}
                             placeholder={scrolled ? 'Try CLARIBB...' : 'Ask anything — CLARIBB remembers your research...'}
                             className="flex-1 bg-transparent outline-none ring-0 focus:outline-none focus:ring-0 text-[13.5px] placeholder:transition-all"
                             style={{ color: '#E0E0E0', caretColor: '#E83E8C', boxShadow: 'none' }} />
