@@ -228,8 +228,8 @@ export default function AuthPage() {
             <div style={{
                 height: '100vh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: '3rem', padding: '0 4rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                gap: '1.5rem', padding: '0 4rem',
                 position: 'relative', overflow: 'hidden',
             }}>
                 {/* Ambient top glow */}
