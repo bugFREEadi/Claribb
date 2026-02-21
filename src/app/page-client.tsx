@@ -3,7 +3,7 @@
 import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { Brain, ArrowRight, Network, Shield, Search, Send, X, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
+import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
 
 /* ── SSR-safe mount guard ───────────────────
    Prevents hydration mismatch for browser-only components.
@@ -750,12 +750,22 @@ function DemoSearchBar() {
                             style={{ background: query.trim() ? '#A78BD4' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
                             <Send style={{ width: 11, height: 11, color: query.trim() ? '#fff' : 'rgba(255,255,255,0.3)' }} />
                         </button>
-                        {messages.length > 0 && (
-                            <button type="button" onClick={() => { setChatHidden(h => !h); setQuery(''); }}
+                        {/* X — clear input only */}
+                        {query.trim() && (
+                            <button type="button" onClick={() => setQuery('')}
                                 className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
                                 style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
-                                title={chatHidden ? 'Show chat' : 'Hide chat'}>
-                                <X style={{ width: 11, height: 11, color: chatHidden ? '#A78BD4' : 'rgba(255,255,255,0.4)' }} />
+                                title="Clear input">
+                                <X style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)' }} />
+                            </button>
+                        )}
+                        {/* Minimize — hide/show chat */}
+                        {messages.length > 0 && (
+                            <button type="button" onClick={() => setChatHidden(h => !h)}
+                                className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
+                                style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
+                                title={chatHidden ? 'Show chat' : 'Minimize chat'}>
+                                <ChevronDown style={{ width: 12, height: 12, color: chatHidden ? '#A78BD4' : 'rgba(255,255,255,0.4)', transform: chatHidden ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                             </button>
                         )}
                     </form>
