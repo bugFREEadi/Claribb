@@ -613,20 +613,9 @@ const C = {
 ════════════════════════════════════════════ */
 /* ── Demo Search Bar (persistent bottom bar) ── */
 function DemoSearchBar() {
-    const DEMO_SEED: { role: 'user' | 'ai'; text: string }[] = [
-        {
-            role: 'user',
-            text: 'What makes CLARIBB different from a regular AI chatbot?',
-        },
-        {
-            role: 'ai',
-            text: 'Unlike a stateless chatbot, CLARIBB builds a persistent knowledge graph across every session — so it remembers the paper you uploaded last week, the hypothesis you tested yesterday, and surfaces hidden connections you never asked for. It’s research memory, not just Q&A.',
-        },
-    ];
-
     const [query, setQuery] = useState('');
     const [scrolled, setScrolled] = useState(false);
-    const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>(DEMO_SEED);
+    const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [chatCount, setChatCount] = useState(0);
     const [showGate, setShowGate] = useState(false);
