@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Plus, Brain, Loader2, BookOpen, Database, Network,
     TrendingUp, ChevronRight, Sparkles, X, Layers,
@@ -23,6 +23,16 @@ export default function DashboardPage() {
     const [digestGenerated, setDigestGenerated] = useState(false);
     const [seeding, setSeeding] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // Auto-open create modal when ?create=1 in URL (from sidebar New Project link)
+    useEffect(() => {
+        if (searchParams.get('create') === '1') {
+            setShowCreateModal(true);
+            // Remove param from URL without re-render
+            router.replace('/dashboard');
+        }
+    }, [searchParams, router]);
 
     const fetchProjects = useCallback(async () => {
         try {

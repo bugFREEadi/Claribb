@@ -50,10 +50,15 @@ export default function Sidebar() {
         ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
         : user?.email?.slice(0, 2).toUpperCase() || 'SG';
 
-    // Knowledge Graph href: go to last visited project or projects list
-    const graphHref = lastProjectId
-        ? `/dashboard/graph/${lastProjectId}`
-        : '/dashboard/projects';
+    // Knowledge Graph href: last visited project → localStorage project → projects list
+    const graphHref = (() => {
+        if (lastProjectId) return `/dashboard/graph/${lastProjectId}`;
+        try {
+            const local = JSON.parse(localStorage.getItem('claribb_local_projects') || '[]');
+            if (local.length > 0) return `/dashboard/graph/${local[0].id}`;
+        } catch { /* ignore */ }
+        return '/dashboard/projects';
+    })();
 
     const isGraphActive = pathname.startsWith('/dashboard/graph');
 
@@ -90,7 +95,7 @@ export default function Sidebar() {
 
             {/* New Project button */}
             <div className="px-3 pt-4 pb-2">
-                <Link href="/dashboard" className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:scale-[1.02]"
+                <Link href="/dashboard?create=1" className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:scale-[1.02]"
                     style={{
                         background: 'rgba(79,124,255,0.06)',
                         border: '1px solid rgba(79,124,255,0.16)',
