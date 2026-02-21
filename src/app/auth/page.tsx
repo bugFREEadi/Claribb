@@ -313,7 +313,7 @@ export default function AuthPage() {
                 </Orbiter>
 
                 {/* ── LEFT SIDEBAR ── */}
-                <div style={{ flex: 1, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '54%', minWidth: 0 }}>
+                <div style={{ flex: 1, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '54%', minWidth: 0, position: 'relative', zIndex: 10 }}>
                     {/* Logo */}
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
