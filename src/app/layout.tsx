@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'SAGE — Multi-Agent Research Intelligence',
-    description: 'SAGE is a persistent, memory-driven AI research workspace that remembers everything across sessions, surfaces relevant context automatically, and deploys 4 specialized agents to think, search, challenge, and connect on your behalf.',
+    title: 'CLARRIB — Multi-Agent Research Intelligence',
+    description: 'CLARRIB is a persistent, memory-driven AI research workspace that remembers everything across sessions, surfaces relevant context automatically, and deploys 4 specialized agents to think, search, challenge, and connect on your behalf.',
     keywords: ['AI research', 'knowledge management', 'RAG', 'research assistant', 'AI memory'],
     openGraph: {
-        title: 'SAGE — Multi-Agent Research Intelligence',
-        description: 'The AI that remembers your research, so you don\'t have to.',
+        title: 'CLARRIB — Multi-Agent Research Intelligence',
+        description: "The AI that remembers your research, so you don't have to.",
         type: 'website',
     },
 };

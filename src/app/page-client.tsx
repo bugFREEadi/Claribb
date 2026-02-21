@@ -42,10 +42,10 @@ function ScrollBar() {
 /* ── Fade-up wrapper ─────────────────────── */
 function FadeUp({ children, className = '', delay = 0, id = '' }: { children: React.ReactNode; className?: string; delay?: number; id?: string }) {
     const ref = useRef(null);
-    const vis = useInView(ref, { once: true, margin: '-60px' });
+    const vis = useInView(ref, { once: true, margin: '-40px' });
     return (
-        <motion.div id={id} ref={ref} initial={{ opacity: 0, y: 20 }} animate={vis ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.55, delay, ease: [0.22, 0.61, 0.36, 1] }} className={className}>
+        <motion.div id={id} ref={ref} initial={{ opacity: 0, y: 12 }} animate={vis ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.38, delay, ease: [0.22, 0.61, 0.36, 1] }} className={className}>
             {children}
         </motion.div>
     );
@@ -143,11 +143,24 @@ function NeuralDiagram() {
                     stroke="rgba(255,255,255,0.035)" strokeWidth="1"
                     animate={{ opacity: [0.02, 0.1, 0.02] }} transition={{ duration: 2.8 + i * 0.08, delay: i * 0.04, repeat: Infinity }} />
             ))}
-            {edges.slice(0, 5).map(([a, b], i) => (
-                <motion.circle key={`p${i}`} r="3.5" fill="#E83E8C" filter="url(#ndf)"
-                    animate={{ opacity: [0, 1, 0], cx: [nodes[a].x, nodes[b].x], cy: [nodes[a].y, nodes[b].y] }}
-                    transition={{ duration: 1.8, delay: i * 0.6, repeat: Infinity, ease: 'linear' }} />
-            ))}
+            {edges.slice(0, 8).map(([a, b], i) => {
+                const dur = `${1.4}s`;
+                const begin = `${(i * 0.42).toFixed(2)}s`;
+                const kTimes = '0;0.06;0.94;1';
+                return (
+                    <circle key={`p${i}`} r="3" fill="#E83E8C" filter="url(#ndf)">
+                        <animate attributeName="cx" calcMode="linear"
+                            values={`${nodes[a].x};${nodes[a].x};${nodes[b].x};${nodes[b].x}`}
+                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                        <animate attributeName="cy" calcMode="linear"
+                            values={`${nodes[a].y};${nodes[a].y};${nodes[b].y};${nodes[b].y}`}
+                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                        <animate attributeName="opacity" calcMode="linear"
+                            values="0;1;1;0"
+                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                    </circle>
+                );
+            })}
             {nodes.map((nd, i) => (
                 <motion.circle key={`n${i}`} cx={nd.x} cy={nd.y} r={nd.r}
                     fill={i === 12 ? 'url(#nd2)' : 'url(#nd1)'} filter="url(#ndf)"
@@ -156,6 +169,172 @@ function NeuralDiagram() {
                     style={{ transformOrigin: `${nd.x}px ${nd.y}px` }} />
             ))}
         </svg>
+    );
+}
+
+/* ── Agent spread cards — scroll driven ───── */
+function AgentSpreadCards() {
+    const ref = useRef<HTMLDivElement>(null);
+    const { scrollYProgress } = useScroll({
+        target: ref,
+        offset: ['start 0.9', 'start 0.15'],   // animation plays as top of cards goes from 90%→15% of viewport
+    });
+
+    // Each card starts "stacked" on card 0:
+    // Card 1: x = -100% of own width → 0  (slides right to its natural col)
+    // Card 2: x = -200%              → 0
+    // Card 3: x = -300%              → 0
+    const x1 = useTransform(scrollYProgress, [0, 1], ['-100%', '0%']);
+    const x2 = useTransform(scrollYProgress, [0, 1], ['-200%', '0%']);
+    const x3 = useTransform(scrollYProgress, [0, 1], ['-300%', '0%']);
+    // Stagger opacity so cards reveal in sequence
+    const op1 = useTransform(scrollYProgress, [0, 0.3, 0.65], [0, 0, 1]);
+    const op2 = useTransform(scrollYProgress, [0, 0.45, 0.78], [0, 0, 1]);
+    const op3 = useTransform(scrollYProgress, [0, 0.58, 0.9], [0, 0, 1]);
+    // Card 0 also fades in (from a slight y)
+    const op0 = useTransform(scrollYProgress, [0, 0.15, 0.4], [0, 0, 1]);
+
+    const BD = 'rgba(255,255,255,0.06)';
+
+    type AgCard = typeof AGENTS[0];
+    const Card = ({ ag, style }: { ag: AgCard; style?: React.CSSProperties }) => {
+        const Icon = ag.icon;
+        return (
+            <div className="relative p-7 cursor-default h-full"
+                style={{
+                    background: '#08080a',
+                    ...style,
+                }}>
+                <div className="absolute top-4 right-5 text-[26px] font-black select-none"
+                    style={{ color: 'rgba(255,255,255,0.03)' }}>{ag.n}</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${BD}` }}>
+                    <Icon style={{ color: ag.accentIcon, width: 18, height: 18 }} />
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, letterSpacing: '-0.015em' }}>{ag.name} Agent</h3>
+                <p style={{ fontSize: 13, lineHeight: 1.72, color: '#71717A', marginBottom: 20 }}>{ag.desc}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {ag.tags.map(t => (
+                        <span key={t} style={{ fontSize: 10.5, padding: '2px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', color: '#52525B', border: `1px solid ${BD}` }}>{t}</span>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div ref={ref} style={{ border: `1px solid ${BD}`, borderRadius: 14, overflow: 'hidden' }}>
+            {/* Mobile: plain stacked fade-in */}
+            <div className="lg:hidden grid grid-cols-1 md:grid-cols-2">
+                {AGENTS.map((ag, i) => (
+                    <motion.div key={ag.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1, duration: 0.5 }}
+                        style={{ borderBottom: i < 3 ? `1px solid ${BD}` : 'none' }}>
+                        <Card ag={ag} />
+                    </motion.div>
+                ))}
+            </div>
+            {/* Desktop: scroll-driven spread */}
+            <div className="hidden lg:grid grid-cols-4" style={{ overflow: 'hidden' }}>
+                <motion.div style={{ opacity: op0, borderRight: `1px solid ${BD}` }}>
+                    <Card ag={AGENTS[0]} />
+                </motion.div>
+                <motion.div style={{ x: x1, opacity: op1, borderRight: `1px solid ${BD}` }}>
+                    <Card ag={AGENTS[1]} />
+                </motion.div>
+                <motion.div style={{ x: x2, opacity: op2, borderRight: `1px solid ${BD}` }}>
+                    <Card ag={AGENTS[2]} />
+                </motion.div>
+                <motion.div style={{ x: x3, opacity: op3 }}>
+                    <Card ag={AGENTS[3]} />
+                </motion.div>
+            </div>
+        </div>
+    );
+}
+
+/* ── Pipeline flow animation ─────────────── */
+const PIPELINE_STEPS = [
+    { n: '01', icon: Cpu, title: 'Query arrives', desc: 'Intent understood. Context from every past session loaded instantly.', color: '#A78BD4' },
+    { n: '02', icon: Activity, title: '4 agents activate', desc: 'Recall, Explorer, Critique, Connector — all run in parallel.', color: '#72B8CC' },
+    { n: '03', icon: GitBranch, title: 'Synthesis happens', desc: 'Results merge. Memory graph updates. New relationships extracted.', color: '#C47AA0' },
+    { n: '04', icon: Sparkles, title: 'Deep answer', desc: 'Response grounded in your full history. Knowledge compounds.', color: '#9BBFA8' },
+];
+
+function PipelineFlow() {
+    const ref = useRef(null);
+    const vis = useInView(ref, { once: false, margin: '-60px' });
+    const [activeStep, setActiveStep] = useState(0);
+
+    useEffect(() => {
+        if (!vis) return;
+        const t = setInterval(() => setActiveStep(s => (s + 1) % 4), 850);
+        return () => clearInterval(t);
+    }, [vis]);
+
+    const dotPct = activeStep === 0 ? 0 : activeStep === 1 ? 33.3 : activeStep === 2 ? 66.6 : 100;
+
+    return (
+        <div ref={ref} className="relative">
+            {/* Connector track */}
+            <div className="hidden lg:block absolute" style={{ top: 50, left: '12.5%', right: '12.5%', height: 1, background: 'rgba(255,255,255,0.08)' }}>
+                {/* Traveling dot — larger, glowing */}
+                <motion.div
+                    className="absolute rounded-full"
+                    style={{
+                        width: 10, height: 10, top: -4.5,
+                        background: PIPELINE_STEPS[activeStep].color,
+                        boxShadow: `0 0 10px 3px ${PIPELINE_STEPS[activeStep].color}70`,
+                    }}
+                    animate={{ left: `${dotPct}%` }}
+                    transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+                {PIPELINE_STEPS.map((s, i) => {
+                    const Icon = s.icon;
+                    const isActive = activeStep === i;
+                    return (
+                        <motion.div key={`s${i}`}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.1 }}
+                            className="text-center">
+                            {/* Icon box — bright active glow */}
+                            <div className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-5 relative"
+                                style={{
+                                    background: isActive ? `${s.color}1A` : 'rgba(255,255,255,0.03)',
+                                    border: `1px solid ${isActive ? s.color + '60' : 'rgba(255,255,255,0.07)'}`,
+                                    boxShadow: isActive ? `0 0 22px 0 ${s.color}25` : 'none',
+                                    transition: 'background 0.3s, border-color 0.3s, box-shadow 0.3s',
+                                }}>
+                                <Icon style={{ width: 34, height: 34, color: isActive ? s.color : '#3F3F46', transition: 'color 0.3s' }} />
+                                <div className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold"
+                                    style={{
+                                        background: '#040404',
+                                        color: isActive ? s.color : '#3F3F46',
+                                        border: `1px solid ${isActive ? s.color + '70' : 'rgba(255,255,255,0.07)'}`,
+                                        transition: 'color 0.3s, border-color 0.3s',
+                                    }}>{s.n}</div>
+                            </div>
+                            <h3 className="font-semibold text-[15px] mb-2"
+                                style={{ color: isActive ? '#FFFFFF' : '#71717A', transition: 'color 0.45s' }}>
+                                {s.title}
+                            </h3>
+                            <p className="text-[13px] leading-relaxed"
+                                style={{ color: isActive ? '#52525B' : '#3F3F46', transition: 'color 0.45s' }}>
+                                {s.desc}
+                            </p>
+                        </motion.div>
+                    );
+                })}
+            </div>
+        </div>
     );
 }
 
@@ -174,29 +353,29 @@ const SYN: Record<string, string> = {
 /* Per-language code definitions */
 const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     python: [
-        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'sage' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'SAGE' }],
+        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'clarrib' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'CLARRIB' }],
         [],
         [{ t: 'c', v: '# research with compounding memory' }],
         [],
-        [{ t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'f', v: 'SAGE' }, { t: 'd', v: '(' }],
+        [{ t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'f', v: 'CLARRIB' }, { t: 'd', v: '(' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: 'memory' }, { t: 'd', v: '=' }, { t: 's', v: '"persistent"' }, { t: 'd', v: ',' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: 'agents' }, { t: 'd', v: '=' }, { t: 's', v: '"all"' }],
         [{ t: 'd', v: ')' }],
     ],
     node: [
-        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'SAGE' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@sage/client'" }],
+        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'CLARRIB' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@clarrib/client'" }],
         [],
         [{ t: 'c', v: '// research with compounding memory' }],
         [],
-        [{ t: 'k', v: 'const ' }, { t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'k', v: 'new ' }, { t: 'f', v: 'SAGE' }, { t: 'd', v: '({' }],
+        [{ t: 'k', v: 'const ' }, { t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'k', v: 'new ' }, { t: 'f', v: 'CLARRIB' }, { t: 'd', v: '({' }],
         [{ t: 'd', v: '  ' }, { t: 'p', v: 'memory' }, { t: 'd', v: ': ' }, { t: 's', v: "'persistent'" }, { t: 'd', v: ',' }],
         [{ t: 'd', v: '  ' }, { t: 'p', v: 'agents' }, { t: 'd', v: ': ' }, { t: 's', v: "'all'" }],
         [{ t: 'd', v: '})' }],
     ],
     curl: [
         [{ t: 'f', v: 'curl ' }, { t: 'd', v: '-X ' }, { t: 's', v: 'POST' }, { t: 'd', v: ' \\' }],
-        [{ t: 'd', v: '  ' }, { t: 's', v: '"https://api.sage.ai/research"' }, { t: 'd', v: ' \\' }],
-        [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Authorization: Bearer $SAGE_KEY"' }, { t: 'd', v: ' \\' }],
+        [{ t: 'd', v: '  ' }, { t: 's', v: '"https://api.clarrib.ai/research"' }, { t: 'd', v: ' \\' }],
+        [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Authorization: Bearer $CLARRIB_KEY"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Content-Type: application/json"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -d ' }, { t: 'd', v: "'" }, { t: 'd', v: '{' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: '"memory"' }, { t: 'd', v: ': ' }, { t: 's', v: '"persistent"' }, { t: 'd', v: ',' }],
@@ -205,9 +384,9 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     ],
 };
 const CLIPBOARD_CODE: Record<string, (q: string) => string> = {
-    python: q => `from sage import SAGE\n\nclient = SAGE(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
-    node: q => `import SAGE from '@sage/client'\n\nconst client = new SAGE({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
-    curl: q => `curl -X POST "https://api.sage.ai/research" \\\n  -H "Authorization: Bearer $SAGE_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
+    python: q => `from clarrib import CLARRIB\n\nclient = CLARRIB(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
+    node: q => `import CLARRIB from '@clarrib/client'\n\nconst client = new CLARRIB({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
+    curl: q => `curl -X POST "https://api.clarrib.ai/research" \\\n  -H "Authorization: Bearer $CLARRIB_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
 };
 
 function CodePanel({ query }: { query: string }) {
@@ -227,26 +406,26 @@ function CodePanel({ query }: { query: string }) {
         ? 'response = client.research('
         : lang === 'node' ? 'const response = await client.research(' : '';
     return (
-        <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(9,9,12,0.78)', border: '1px solid rgba(255,255,255,0.04)', backdropFilter: 'blur(10px)' }}>
+        <div className="overflow-hidden" style={{ background: 'transparent' }}>
             {/* Tab bar */}
-            <div className="flex items-center justify-between px-5 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="flex items-center gap-5">
                     {tabs.map(tab => (
                         <button key={tab.id} onClick={() => setLang(tab.id)}
                             className="text-[12.5px] transition-colors" style={{
-                                color: lang === tab.id ? '#F8F8F2' : '#6272A4',
+                                color: lang === tab.id ? '#F8F8F2' : '#4A5072',
                                 fontWeight: lang === tab.id ? 600 : 400,
-                                borderBottom: lang === tab.id ? '1.5px solid #F8F8F2' : '1.5px solid transparent',
+                                borderBottom: lang === tab.id ? '1.5px solid rgba(255,255,255,0.4)' : '1.5px solid transparent',
                                 paddingBottom: 2,
                             }}>{tab.label}</button>
                     ))}
                 </div>
-                <button onClick={copy} className="transition-opacity hover:opacity-70" style={{ color: copied ? '#50FA7B' : '#6272A4' }}>
+                <button onClick={copy} className="transition-opacity hover:opacity-70" style={{ color: copied ? '#50FA7B' : '#4A5072' }}>
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
             </div>
             {/* Code body */}
-            <div className="px-5 py-4 font-mono text-[12.5px] leading-[1.85]">
+            <div className="px-1 py-4 font-mono text-[12.5px] leading-[1.85]">
                 {code.map((line, i) => (
                     <div key={`${lang}${i}`} className="empty:h-[1.85em]">
                         {line.map((seg, j) => <span key={j} style={{ color: SYN[seg.t] }}>{seg.v}</span>)}
@@ -270,10 +449,10 @@ function CodePanel({ query }: { query: string }) {
 
 /* ── Data ────────────────────────────────── */
 const AGENTS = [
-    { id: 'recall', n: '01', name: 'Recall', icon: Brain, desc: 'Semantic memory search across every session. Instant, vector-indexed retrieval from your entire research history.', tags: ['pgvector', 'cosine similarity', 'cross-session'] },
-    { id: 'explorer', n: '02', name: 'Explorer', icon: Search, desc: 'Live web research when memory has gaps. Crawls, extracts, and embeds new knowledge in real time.', tags: ['live crawling', 'auto-embed', 'gap detection'] },
-    { id: 'critique', n: '03', name: 'Critique', icon: Shield, desc: "Devil's advocate. Surfaces counterarguments, hidden assumptions, and logical weaknesses in every response.", tags: ['steelmanning', 'bias detection', 'assumption audit'] },
-    { id: 'connector', n: '04', name: 'Connector', icon: Network, desc: "Discovers non-obvious links across domains. Finds connections you didn't know you were looking for.", tags: ['cross-domain', 'serendipity', 'pattern synthesis'] },
+    { id: 'recall', n: '01', name: 'Recall', icon: Brain, accent: 'rgba(167,139,212,0.18)', accentBorder: 'rgba(167,139,212,0.3)', accentIcon: '#A78BD4', desc: 'Semantic memory search across every session. Instant, vector-indexed retrieval from your entire research history.', tags: ['pgvector', 'cosine similarity', 'cross-session'] },
+    { id: 'explorer', n: '02', name: 'Explorer', icon: Search, accent: 'rgba(114,184,204,0.15)', accentBorder: 'rgba(114,184,204,0.28)', accentIcon: '#72B8CC', desc: 'Live web research when memory has gaps. Crawls, extracts, and embeds new knowledge in real time.', tags: ['live crawling', 'auto-embed', 'gap detection'] },
+    { id: 'critique', n: '03', name: 'Critique', icon: Shield, accent: 'rgba(196,122,160,0.15)', accentBorder: 'rgba(196,122,160,0.28)', accentIcon: '#C47AA0', desc: "Devil's advocate. Surfaces counterarguments, hidden assumptions, and logical weaknesses in every response.", tags: ['steelmanning', 'bias detection', 'assumption audit'] },
+    { id: 'connector', n: '04', name: 'Connector', icon: Network, accent: 'rgba(196,154,90,0.14)', accentBorder: 'rgba(196,154,90,0.26)', accentIcon: '#C49A5A', desc: "Discovers non-obvious links across domains. Finds connections you didn't know you were looking for.", tags: ['cross-domain', 'serendipity', 'pattern synthesis'] },
 ];
 const TICKER = ['semantic vector memory', '4 parallel agents', 'knowledge graph time machine', 'live chain of thought', 'steelman engine', 'belief evolution tracker', 'trajectory prediction', 'cross-project serendipity'];
 
@@ -330,7 +509,7 @@ export default function LandingPage() {
                 {/* Logo */}
                 <div className="flex items-center gap-2.5">
                     <Brain className="w-5 h-5" style={{ color: C.sec }} />
-                    <span className="text-[15px] font-semibold tracking-tight">SAGE</span>
+                    <span className="text-[15px] font-semibold tracking-tight">CLARRIB</span>
                 </div>
                 {/* Links */}
                 <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
@@ -357,11 +536,11 @@ export default function LandingPage() {
                 <div className="relative z-10 w-full max-w-screen-xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center py-14">
                     {/* Left — parallax style only applied after mount to avoid SSR mismatch */}
                     <motion.div style={mounted ? { y: heroY, opacity: heroOp } : {}}>
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}>
                             <Eyebrow>Multi-Agent Research Intelligence</Eyebrow>
                         </motion.div>
 
-                        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, duration: 0.65 }}
+                        <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14, duration: 0.45 }}
                             className="font-bold leading-[1.06] mb-5"
                             style={{ fontSize: 'clamp(34px,4.6vw,56px)', letterSpacing: '-0.025em' }}>
                             <span style={{
@@ -374,14 +553,14 @@ export default function LandingPage() {
                                 everything</span>
                         </motion.h1>
 
-                        <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33 }}
+                        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
                             className="text-[15.5px] font-light leading-[1.74] mb-8" style={{ color: C.sec, maxWidth: 500 }}>
                             Four specialized AI agents. One persistent memory graph.
-                            SAGE builds a compounding knowledge model — so every session makes you sharper than the last.
+                            CLARRIB builds a compounding knowledge model — so every session makes you sharper than the last.
                         </motion.p>
 
                         {/* Buttons */}
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }} className="flex flex-wrap items-center gap-3 mb-10">
+                        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-wrap items-center gap-3 mb-10">
                             <Link href="/auth" className="flex items-center gap-2 px-5 py-2.5 rounded-[8px] text-[14px] font-medium hover:opacity-90 transition-opacity"
                                 style={{ background: C.text, color: C.black }}>
                                 Get started <ArrowRight className="w-4 h-4" />
@@ -392,8 +571,8 @@ export default function LandingPage() {
                             </a>
                         </motion.div>
 
-                        {/* Tag row — like MegaLLM "Use it with" */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.62 }}
+                        {/* Tag row */}
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}
                             className="flex flex-wrap items-center gap-2">
                             <span className="text-[12px] font-light" style={{ color: C.faint }}>Works with</span>
                             {['Groq', 'Cohere', 'pgvector', 'OpenAI'].map(t => (
@@ -403,7 +582,7 @@ export default function LandingPage() {
                         </motion.div>
 
                         {/* Divider + stats */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
                             className="flex items-center gap-10 mt-9 pt-8" style={{ borderTop: `1px solid ${C.border}` }}>
                             {[{ val: 4, s: '', lbl: 'AI Agents' }, { val: 100, s: '+', lbl: 'Depth score scale' }, { custom: '<1s', lbl: 'Memory recall' }].map((st, i) => (
                                 <div key={i}>
@@ -415,7 +594,7 @@ export default function LandingPage() {
                     </motion.div>
 
                     {/* Right */}
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36, duration: 0.75 }}
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.5 }}
                         className="hidden lg:flex flex-col gap-3">
                         {/* Neural diagram — no border, transparent, blends into black */}
                         <div className="relative overflow-hidden" style={{ height: 300, background: 'transparent', border: 'none' }}>
@@ -440,7 +619,7 @@ export default function LandingPage() {
 
             {/* ═══ TICKER ════════════════════════════ */}
             <div className="relative overflow-hidden py-2.5 border-y" style={{ borderColor: C.border }}>
-                <motion.div className="flex gap-10 whitespace-nowrap" animate={{ x: [0, -1040] }} transition={{ duration: 26, repeat: Infinity, ease: 'linear' }}>
+                <motion.div className="flex gap-10 whitespace-nowrap" animate={{ x: [0, -1040] }} transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}>
                     {[0, 1, 2].flatMap(o => TICKER.map((t, i) => (
                         <span key={`tk${o}${i}`} className="flex items-center gap-3 text-[11px]" style={{ color: C.faint }}>
                             <span className="w-1 h-1 rounded-full" style={{ background: C.pink, opacity: 0.5 }} />{t}
@@ -452,35 +631,14 @@ export default function LandingPage() {
             {/* ═══ AGENTS ═══════════════════════════ */}
             <section id="agents" className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
-                    <FadeUp className="text-center mb-14">
+                    <FadeUp className="text-center mb-16">
                         <Eyebrow>The Four Agents</Eyebrow>
-                        <h2 className="text-[40px] font-bold mb-4" style={{ letterSpacing: '-0.023em' }}>
-                            Four <span style={{ color: '#BD93F9' }}>specialists</span>. One unified mind.
+                        <h2 style={{ fontSize: 'clamp(42px,5.5vw,64px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, marginBottom: 16 }}>
+                            Four <em style={{ color: '#BD93F9', fontStyle: 'italic', fontWeight: 800 }}>specialists</em>.<br />One unified mind.
                         </h2>
-                        <p className="text-[15px] font-light max-w-[540px] mx-auto" style={{ color: C.sec }}>Every query activates all four agents simultaneously. They compete, collaborate, and synthesize — producing answers no single model can match.</p>
+                        <p style={{ fontSize: 16, fontWeight: 300, maxWidth: 540, margin: '0 auto', color: C.sec, lineHeight: 1.72 }}>Every query activates all four agents simultaneously. They compete, collaborate, and synthesize — producing answers no single model can match.</p>
                     </FadeUp>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[2px]" style={{ border: `1px solid ${C.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                        {AGENTS.map((ag, i) => {
-                            const Icon = ag.icon;
-                            return (
-                                <motion.div key={ag.id} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                                    whileHover={{ background: 'rgba(255,255,255,0.025)', transition: { duration: 0.15 } }}
-                                    className="relative p-6 group cursor-default"
-                                    style={{ background: 'rgba(11,11,13,0.9)', borderRight: i < 3 ? `1px solid ${C.border}` : 'none' }}>
-                                    <div className="absolute top-3 right-4 text-[32px] font-black opacity-[0.035]">{ag.n}</div>
-                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-5"
-                                        style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}` }}>
-                                        <Icon className="w-4.5 h-4.5" style={{ color: C.sec, width: 18, height: 18 }} />
-                                    </div>
-                                    <h3 className="font-semibold text-[14.5px] mb-2">{ag.name} Agent</h3>
-                                    <p className="text-[12.5px] leading-relaxed mb-4" style={{ color: C.muted }}>{ag.desc}</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {ag.tags.map(t => <span key={t} className="text-[10px] px-2 py-0.5 rounded font-medium" style={{ background: 'rgba(255,255,255,0.04)', color: C.muted, border: `1px solid ${C.border}` }}>{t}</span>)}
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
+                    <AgentSpreadCards />
                 </div>
             </section>
 
@@ -489,100 +647,111 @@ export default function LandingPage() {
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
                     <FadeUp className="text-center mb-20">
                         <Eyebrow>The Pipeline</Eyebrow>
-                        <h2 className="text-[40px] font-bold mb-4" style={{ letterSpacing: '-0.023em' }}>
-                            From question to <span style={{ color: '#50FA7B' }}>insight</span> in under a second.
+                        <h2 style={{ fontSize: 'clamp(40px,5vw,60px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>
+                            From question to <span style={{ color: '#9BBFA8', fontStyle: 'italic' }}>insight</span><br />in under a second.
                         </h2>
                     </FadeUp>
-                    <div className="relative">
-                        <div className="hidden lg:block absolute top-[50px] left-[8%] right-[8%] h-px" style={{ background: `linear-gradient(90deg,transparent,${C.border},${C.border},transparent)` }} />
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                            {[
-                                { n: '01', icon: Cpu, title: 'Query arrives', desc: 'Intent understood. Context from every past session loaded instantly.' },
-                                { n: '02', icon: Activity, title: '4 agents activate', desc: 'Recall, Explorer, Critique, Connector — all run in parallel.' },
-                                { n: '03', icon: GitBranch, title: 'Synthesis happens', desc: 'Results merge. Memory graph updates. New relationships extracted.' },
-                                { n: '04', icon: Sparkles, title: 'Deep answer', desc: 'Response grounded in your full history. Knowledge compounds.' },
-                            ].map((s, i) => {
-                                const Icon = s.icon;
-                                return (
-                                    <motion.div key={`s${i}`} initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-                                        <div className="w-[100px] h-[100px] rounded-2xl flex items-center justify-center mx-auto mb-5 relative"
-                                            style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}` }}>
-                                            <Icon className="w-9 h-9" style={{ color: C.sec }} />
-                                            <div className="absolute -top-3 -right-3 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold"
-                                                style={{ background: C.layer, color: C.muted, border: `1px solid ${C.border}` }}>{s.n}</div>
-                                        </div>
-                                        <h3 className="font-semibold text-[15px] mb-2">{s.title}</h3>
-                                        <p className="text-[13px]" style={{ color: C.muted }}>{s.desc}</p>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <PipelineFlow />
                 </div>
             </section>
 
-            {/* ═══ FEATURES ══════════════════════════ */}
+            {/* ═══ FEATURES ══════════════════════ */}
             <section id="features" className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
-                    <FadeUp className="text-center mb-14">
+                    <FadeUp className="text-center mb-16">
                         <Eyebrow>Core Capabilities</Eyebrow>
-                        <h2 className="text-[40px] font-bold mb-4" style={{ letterSpacing: '-0.023em' }}>
-                            Everything serious <span style={{ color: '#8BE9FD' }}>researchers</span> need.
+                        <h2 style={{ fontSize: 'clamp(42px,5.5vw,64px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, marginBottom: 14 }}>
+                            Everything serious<br /><em style={{ fontStyle: 'italic', color: '#A78BD4' }}>researchers</em> need.
                         </h2>
+                        <p style={{ fontSize: 15, fontWeight: 300, color: C.sec, maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>Six foundational capabilities built to compound—getting smarter with every session.</p>
                     </FadeUp>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Wide */}
-                        <FadeUp className="md:col-span-2">
-                            <motion.div whileHover={{ y: -2 }} className="p-7 rounded-xl h-full" style={{ background: 'rgba(0,0,0,0.6)', border: `1px solid ${C.border}` }}>
+                        {/* Wide — Semantic Vector Memory */}
+                        <FadeUp className="md:col-span-2" delay={0}>
+                            <motion.div whileHover={{ y: -2 }} className="p-7 rounded-xl h-full" style={{ background: 'rgba(8,8,10,0.8)', border: `1px solid ${C.border}` }}>
                                 <div className="flex gap-7">
                                     <div className="flex-1">
-                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}` }}><Database className="w-4 h-4" style={{ color: C.sec }} /></div>
+                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(167,139,212,0.08)', border: '1px solid rgba(167,139,212,0.2)' }}>
+                                            <Database style={{ color: '#A78BD4', width: 16, height: 16 }} />
+                                        </div>
                                         <h3 className="text-[16px] font-semibold mb-2">Semantic Vector Memory</h3>
-                                        <p className="text-[13px] leading-relaxed mb-4" style={{ color: C.muted }}>Every note and conversation embedded via pgvector. SAGE retrieves the right context from months ago — in milliseconds, no manual tagging.</p>
+                                        <p className="text-[13px] leading-relaxed mb-4" style={{ color: C.muted }}>Every note and conversation embedded via pgvector. CLARRIB retrieves the right context from months ago — in milliseconds, no manual tagging.</p>
                                         <div className="flex flex-wrap gap-2">
                                             {['pgvector', 'cosine similarity', 'auto-chunking', 'cross-session recall'].map(t => (
-                                                <span key={t} className="text-[11px] px-2.5 py-1 rounded-md" style={{ background: 'rgba(255,255,255,0.04)', color: C.muted, border: `1px solid ${C.border}` }}>{t}</span>
+                                                <span key={t} className="text-[11px] px-2.5 py-1 rounded-md" style={{ background: 'rgba(167,139,212,0.07)', color: '#A78BD4', border: '1px solid rgba(167,139,212,0.18)' }}>{t}</span>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="hidden md:flex flex-col justify-end gap-1.5 w-14 pb-1">
                                         {[0.35, 0.62, 0.48, 0.82, 0.58, 0.72, 0.44].map((h, i) => (
-                                            <motion.div key={i} className="rounded-sm" style={{ height: 4, background: `rgba(255,255,255,${h * 0.18})` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.36 }} />
+                                            <motion.div key={i} className="rounded-sm" style={{ height: 4, background: `rgba(167,139,212,${h * 0.35})` }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.36 }} />
                                         ))}
                                     </div>
                                 </div>
                             </motion.div>
                         </FadeUp>
-                        {/* Tall */}
+                        {/* Tall — Living Knowledge Graph */}
                         <FadeUp delay={0.07} className="row-span-2">
-                            <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl h-full" style={{ background: 'rgba(0,0,0,0.6)', border: `1px solid ${C.border}` }}>
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}` }}><Network className="w-4 h-4" style={{ color: C.sec }} /></div>
+                            <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl h-full" style={{ background: 'rgba(8,8,10,0.8)', border: `1px solid ${C.border}` }}>
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(114,184,204,0.08)', border: '1px solid rgba(114,184,204,0.2)' }}>
+                                    <Network style={{ color: '#72B8CC', width: 16, height: 16 }} />
+                                </div>
                                 <h3 className="text-[16px] font-semibold mb-2">Living Knowledge Graph</h3>
                                 <p className="text-[13px] leading-relaxed mb-5" style={{ color: C.muted }}>Every concept and relationship extracted automatically. Watch your research domain grow visually — session by session.</p>
-                                <div className="relative" style={{ height: 190 }}>
-                                    <svg className="absolute inset-0 w-full h-full">
-                                        {([[60, 70, 150, 40], [60, 70, 145, 110], [150, 40, 145, 110], [60, 145, 150, 145]] as number[][]).map((l, i) => (
-                                            <motion.line key={`ml${i}`} x1={l[0]} y1={l[1]} x2={l[2]} y2={l[3]} stroke="rgba(255,255,255,0.08)" strokeWidth="1"
-                                                animate={{ opacity: [0.04, 0.32, 0.04] }} transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.4 }} />
-                                        ))}
-                                    </svg>
-                                    {[{ x: 34, y: 54, r: 21, lbl: 'RAG' }, { x: 124, y: 19, r: 17, lbl: 'RLHF' }, { x: 116, y: 90, r: 15, lbl: 'Safety' }, { x: 34, y: 124, r: 13, lbl: 'SSM' }].map((nd, i) => (
-                                        <motion.div key={`mn${i}`} className="absolute flex items-center justify-center rounded-full"
-                                            style={{ width: nd.r * 2, height: nd.r * 2, left: nd.x, top: nd.y, background: `rgba(255,255,255,${0.03 + i * 0.01})`, border: `1px solid rgba(255,255,255,${0.08 + i * 0.02})`, color: C.muted, fontSize: 8, fontFamily: 'inherit', fontWeight: 500 }}
-                                            animate={{ y: [0, -3, 0] }} transition={{ duration: 2.4 + i * 0.38, repeat: Infinity, delay: i * 0.28 }}>{nd.lbl}</motion.div>
-                                    ))}
-                                </div>
+                                {/* Pure SVG graph — single coordinate system, no mismatch */}
+                                {(() => {
+                                    const gNodes = [
+                                        { cx: 78, cy: 98, r: 26, lbl: 'RAG' },
+                                        { cx: 196, cy: 44, r: 22, lbl: 'RLHF' },
+                                        { cx: 214, cy: 138, r: 19, lbl: 'Safety' },
+                                        { cx: 80, cy: 168, r: 16, lbl: 'SSM' },
+                                    ];
+                                    const gEdges: [number, number][] = [[0, 1], [0, 2], [1, 2], [0, 3], [2, 3]];
+                                    return (
+                                        <svg width="100%" style={{ height: 200 }} viewBox="0 0 290 200" preserveAspectRatio="xMidYMid meet">
+                                            {/* Edges */}
+                                            {gEdges.map(([a, b], i) => (
+                                                <line key={`ge${i}`}
+                                                    x1={gNodes[a].cx} y1={gNodes[a].cy}
+                                                    x2={gNodes[b].cx} y2={gNodes[b].cy}
+                                                    stroke="rgba(114,184,204,0.55)" strokeWidth="1">
+                                                    <animate attributeName="opacity"
+                                                        values="0.3;0.85;0.3"
+                                                        dur={`${2.6}s`} begin={`${i * 0.45}s`}
+                                                        repeatCount="indefinite" />
+                                                </line>
+                                            ))}
+                                            {/* Nodes */}
+                                            {gNodes.map((nd, i) => (
+                                                <g key={`gn${i}`}>
+                                                    <animateTransform attributeName="transform" type="translate"
+                                                        values="0,0; 0,-3; 0,0"
+                                                        dur={`${2.6 + i * 0.4}s`} begin={`${i * 0.32}s`}
+                                                        repeatCount="indefinite" />
+                                                    <circle cx={nd.cx} cy={nd.cy} r={nd.r}
+                                                        fill="rgba(114,184,204,0.08)"
+                                                        stroke="rgba(114,184,204,0.35)" strokeWidth="1" />
+                                                    <text x={nd.cx} y={nd.cy + 3.5}
+                                                        textAnchor="middle" fontSize="9"
+                                                        fill="#72B8CC" fontFamily="inherit" fontWeight="500">{nd.lbl}</text>
+                                                </g>
+                                            ))}
+                                        </svg>
+                                    );
+                                })()}
                                 <p className="text-[11px] mt-4" style={{ color: C.faint }}>+ Time Machine: replay belief graph evolution</p>
                             </motion.div>
                         </FadeUp>
                         {/* 2 small */}
                         {[
-                            { icon: GitBranch, title: 'Session Intelligence', desc: 'AI summaries, open questions, gaps resolved. Return weeks later and pick up exactly where you left off.' },
-                            { icon: Lightbulb, title: 'Research Hypotheses', desc: 'SAGE generates testable hypotheses from your corpus — ideas you might not have connected yourself.' },
+                            { icon: GitBranch, title: 'Session Intelligence', desc: 'AI summaries, open questions, gaps resolved. Return weeks later and pick up exactly where you left off.', color: '#9BBFA8', bg: 'rgba(155,191,168,0.07)', border: 'rgba(155,191,168,0.2)' },
+                            { icon: Lightbulb, title: 'Research Hypotheses', desc: 'CLARRIB generates testable hypotheses from your corpus — ideas you might not have connected yourself.', color: '#C47AA0', bg: 'rgba(196,122,160,0.07)', border: 'rgba(196,122,160,0.2)' },
                         ].map((fc, i) => (
                             <FadeUp key={`fc${i}`} delay={0.09 + i * 0.05}>
-                                <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl" style={{ background: 'rgba(0,0,0,0.6)', border: `1px solid ${C.border}` }}>
-                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}` }}><fc.icon className="w-4 h-4" style={{ color: C.sec }} /></div>
+                                <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl" style={{ background: 'rgba(8,8,10,0.8)', border: `1px solid ${C.border}` }}>
+                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: fc.bg, border: `1px solid ${fc.border}` }}>
+                                        <fc.icon style={{ color: fc.color, width: 16, height: 16 }} />
+                                    </div>
                                     <h3 className="text-[15px] font-semibold mb-2">{fc.title}</h3>
                                     <p className="text-[13px] leading-relaxed" style={{ color: C.muted }}>{fc.desc}</p>
                                 </motion.div>
@@ -590,14 +759,16 @@ export default function LandingPage() {
                         ))}
                         {/* Wide bottom */}
                         <FadeUp className="md:col-span-2" delay={0.11}>
-                            <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl" style={{ background: 'rgba(0,0,0,0.6)', border: `1px solid ${C.border}` }}>
+                            <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl" style={{ background: 'rgba(8,8,10,0.8)', border: `1px solid ${C.border}` }}>
                                 <div className="grid grid-cols-2 gap-6">
                                     {[
-                                        { icon: Zap, title: 'Cross-Project Serendipity', desc: 'Unexpected connections across all your projects — insights only the full picture reveals.' },
-                                        { icon: TrendingUp, title: 'Trajectory Prediction', desc: "AI predicts where your research is headed and what foundational concepts you'll need next." },
+                                        { icon: Zap, title: 'Cross-Project Serendipity', desc: 'Unexpected connections across all your projects — insights only the full picture reveals.', color: '#C49A5A', bg: 'rgba(196,154,90,0.07)', border: 'rgba(196,154,90,0.2)' },
+                                        { icon: TrendingUp, title: 'Trajectory Prediction', desc: "AI predicts where your research is headed and what foundational concepts you'll need next.", color: '#BD93F9', bg: 'rgba(189,147,249,0.07)', border: 'rgba(189,147,249,0.2)' },
                                     ].map((f, i) => (
                                         <div key={i}>
-                                            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}` }}><f.icon className="w-4 h-4" style={{ color: C.sec }} /></div>
+                                            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: f.bg, border: `1px solid ${f.border}` }}>
+                                                <f.icon style={{ color: f.color, width: 16, height: 16 }} />
+                                            </div>
                                             <h3 className="text-[15px] font-semibold mb-2">{f.title}</h3>
                                             <p className="text-[13px] leading-relaxed" style={{ color: C.muted }}>{f.desc}</p>
                                         </div>
@@ -627,13 +798,13 @@ export default function LandingPage() {
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
                     <FadeUp className="text-center mb-14">
                         <Eyebrow>Built For</Eyebrow>
-                        <h2 className="text-[40px] font-bold mb-4" style={{ letterSpacing: '-0.023em' }}>Who uses <span style={{ color: '#E83E8C' }}>SAGE</span>?</h2>
+                        <h2 style={{ fontSize: 'clamp(38px,4.5vw,56px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>Who uses <span style={{ color: '#E83E8C', fontStyle: 'italic' }}>CLARRIB</span>?</h2>
                     </FadeUp>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
                             { e: '🔬', title: 'PhD Researchers', desc: 'Never lose track of 3 years of papers. Surface the connection your advisor missed.', tags: ['Literature Review', 'Concept Mapping'] },
                             { e: '🏢', title: 'Strategy Analysts', desc: 'Build compounding competitive intelligence. Connect every insight across sprints.', tags: ['Market Research', 'Trend Detection'] },
-                            { e: '⚖️', title: 'Legal Professionals', desc: 'Track case law and precedent across months. SAGE never forgets a ruling.', tags: ['Case Law', 'Precedent Cross-Reference'] },
+                            { e: '⚖️', title: 'Legal Professionals', desc: 'Track case law and precedent across months. CLARRIB never forgets a ruling.', tags: ['Case Law', 'Precedent Cross-Reference'] },
                             { e: '💡', title: 'Innovation Teams', desc: 'Detect convergence patterns across disciplines before they become obvious.', tags: ['Tech Scouting', 'Pattern Synthesis'] },
                         ].map((uc, i) => (
                             <motion.div key={i} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
@@ -660,7 +831,7 @@ export default function LandingPage() {
                             <span style={{ color: '#E83E8C' }}>Stop starting</span> from zero.
                         </h2>
                         <p className="text-[15.5px] font-light mb-10" style={{ color: C.sec }}>
-                            Build a research brain that compounds with every session. The longer you use SAGE, the more irreplaceable it becomes.
+                            Build a research brain that compounds with every session. The longer you use CLARRIB, the more irreplaceable it becomes.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                             <Link href="/auth" className="flex items-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:opacity-90 transition-opacity"
@@ -682,7 +853,7 @@ export default function LandingPage() {
                 <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2.5">
                         <Brain className="w-4 h-4" style={{ color: C.faint }} />
-                        <span className="font-semibold text-[14px]">SAGE</span>
+                        <span className="font-semibold text-[14px]">CLARRIB</span>
                         <span className="text-[13px]" style={{ color: C.faint }}> — Multi-Agent Research Intelligence</span>
                     </div>
                     <div className="flex items-center gap-5 text-[12.5px]" style={{ color: C.faint }}>
