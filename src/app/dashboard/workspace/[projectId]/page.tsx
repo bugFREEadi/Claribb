@@ -988,67 +988,71 @@ export default function WorkspacePage() {
     return (
         <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
             {/* ── LEFT: Session Sidebar ── */}
-            <div className="w-52 shrink-0 border-r flex flex-col py-3 px-2" style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}>
+            <div className="w-48 shrink-0 border-r flex flex-col py-3 px-2" style={{
+                borderColor: 'rgba(255,255,255,0.05)',
+                background: 'rgba(8,8,10,0.95)',
+            }}>
                 <button onClick={() => router.push('/dashboard')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium mb-4 transition-colors hover:bg-white/5"
-                    style={{ color: 'var(--text-muted)' }}>
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium mb-4 transition-all hover:bg-white/5"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}>
                     <ChevronLeft className="w-3.5 h-3.5" /> Back
                 </button>
 
                 <div className="flex items-center gap-2 px-3 mb-3">
-                    <BookOpen className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Sessions</span>
+                    <BookOpen className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.25)' }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Sessions</span>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-1">
                     {session && (
-                        <div className="px-3 py-2 rounded-lg" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                            <div className="text-xs font-medium mb-0.5" style={{ color: '#a5b4fc' }}>Current Session</div>
-                            <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{messages.filter(m => m.role === 'user').length} messages</div>
+                        <div className="px-3 py-2 rounded-xl" style={{
+                            background: 'linear-gradient(135deg, rgba(232,62,140,0.08), rgba(167,139,212,0.05))',
+                            border: '1px solid rgba(232,62,140,0.2)',
+                        }}>
+                            <div className="text-[11px] font-medium mb-0.5" style={{ color: '#E83E8C' }}>Current Session</div>
+                            <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{messages.filter(m => m.role === 'user').length} messages</div>
                         </div>
                     )}
                     {sessions.filter(s => s.id !== session?.id).slice(0, 12).map(s => (
-                        <div key={s.id} className="px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-white/5 group">
-                            <div className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{s.title || 'Research Session'}</div>
-                            {(s as Session & { summary?: string }).summary && (
-                                <div className="text-[9px] mt-0.5 line-clamp-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }}>
-                                    {(s as Session & { summary?: string }).summary}
-                                </div>
-                            )}
-                            <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        <div key={s.id} className="px-3 py-2 rounded-xl cursor-pointer transition-all hover:bg-white/[0.04] group">
+                            <div className="text-[11px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{s.title || 'Research Session'}</div>
+                            <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>
                                 {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* 🔥 Depth Score — animated, prominent */}
-                <div className="mx-2 mb-2 p-3 rounded-xl" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                    <div className="flex items-center justify-between mb-1.5">
+                {/* Research Depth */}
+                <div className="mx-1 mb-2 p-3 rounded-xl" style={{
+                    background: 'rgba(167,139,212,0.06)',
+                    border: '1px solid rgba(167,139,212,0.15)',
+                }}>
+                    <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-1.5">
-                            <TrendingUp className="w-3 h-3" style={{ color: '#10b981' }} />
-                            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Research Depth</span>
+                            <TrendingUp className="w-3 h-3" style={{ color: '#A78BD4' }} />
+                            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Depth</span>
                         </div>
                         <motion.span
                             key={depthScore}
-                            initial={{ scale: 1.4, color: '#6ee7b7' }}
-                            animate={{ scale: 1, color: '#a5b4fc' }}
+                            initial={{ scale: 1.4, color: '#E83E8C' }}
+                            animate={{ scale: 1, color: '#A78BD4' }}
                             transition={{ duration: 0.4 }}
                             className="text-base font-black"
-                            style={{ color: '#a5b4fc', fontVariantNumeric: 'tabular-nums' }}
+                            style={{ fontVariantNumeric: 'tabular-nums' }}
                         >
                             {depthScore}
                         </motion.span>
                     </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
                         <motion.div
                             className="h-full rounded-full"
-                            style={{ background: 'linear-gradient(90deg, #6366f1, #06b6d4)' }}
+                            style={{ background: 'linear-gradient(90deg, #E83E8C, #A78BD4)' }}
                             animate={{ width: `${depthScore}%` }}
                             transition={{ duration: 0.6, ease: 'easeOut' }}
                         />
                     </div>
-                    <div className="flex justify-between mt-1.5 text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                    <div className="flex justify-between mt-1.5 text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
                         <span>{sessions.length} sessions</span>
                         <span>{messages.filter(m => m.role === 'user').length} today</span>
                     </div>
@@ -1057,8 +1061,12 @@ export default function WorkspacePage() {
                 <button
                     onClick={handleEndSession}
                     disabled={endingSession || sessionHistory.length === 0}
-                    className="mt-1 mx-2 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.2)', color: '#fb7185' }}
+                    className="mt-1 mx-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{
+                        background: 'rgba(232,62,140,0.08)',
+                        border: '1px solid rgba(232,62,140,0.2)',
+                        color: '#E83E8C',
+                    }}
                 >
                     {endingSession ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <StopCircle className="w-3.5 h-3.5" />}
                     End & Summarize
@@ -1067,13 +1075,21 @@ export default function WorkspacePage() {
 
             {/* ── CENTER: Chat ── */}
             <div className="flex-1 flex flex-col min-w-0">
-                {/* Header — Row 1: Project info + utility buttons */}
-                <div className="flex items-center justify-between px-5 py-2.5 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
+                {/* ── HEADER — single clean row ── */}
+                <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    background: 'rgba(0,0,0,0.2)',
+                    backdropFilter: 'blur(12px)',
+                }}>
+                    {/* Left — project identity */}
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{
-                            background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
-                            boxShadow: streaming ? '0 0 20px rgba(99,102,241,0.6)' : '0 0 16px rgba(99,102,241,0.4)',
-                            transition: 'box-shadow 0.3s',
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{
+                            background: streaming
+                                ? 'linear-gradient(135deg, #E83E8C, #A78BD4)'
+                                : 'linear-gradient(135deg, rgba(232,62,140,0.3), rgba(167,139,212,0.2))',
+                            border: '1px solid rgba(232,62,140,0.3)',
+                            boxShadow: streaming ? '0 0 20px rgba(232,62,140,0.5)' : 'none',
+                            transition: 'all 0.3s',
                         }}>
                             <Brain className="w-4 h-4 text-white" />
                         </div>
@@ -1083,118 +1099,126 @@ export default function WorkspacePage() {
                         </div>
                     </div>
 
-                    {/* Utility buttons — right side */}
+                    {/* Right — compact icon buttons */}
                     <div className="flex items-center gap-1.5">
-                        <button
-                            onClick={() => setCritiqueMode(c => !c)}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                        {/* Critique toggle */}
+                        <button onClick={() => setCritiqueMode(c => !c)}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
                             style={{
-                                background: critiqueMode ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
-                                border: critiqueMode ? '1px solid rgba(245,158,11,0.35)' : '1px solid var(--border)',
-                                color: critiqueMode ? '#fbbf24' : 'var(--text-muted)',
+                                background: critiqueMode ? 'rgba(232,62,140,0.15)' : 'rgba(255,255,255,0.04)',
+                                border: critiqueMode ? '1px solid rgba(232,62,140,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                                color: critiqueMode ? '#E83E8C' : 'rgba(255,255,255,0.35)',
                             }}
-                            title="Critique mode challenges assumptions"
-                        >
+                            title={`Critique mode ${critiqueMode ? 'ON' : 'OFF'}`}>
                             <Shield className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Critique {critiqueMode ? 'ON' : 'OFF'}</span>
                         </button>
-                        <button
-                            onClick={() => router.push(`/dashboard/graph/${projectId}`)}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105"
-                            style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', color: '#67e8f9' }}
-                            title="Knowledge Graph"
-                        >
-                            <Network className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                            onClick={() => setSidePanel(p => p === 'noticed' ? null : 'noticed')}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all relative"
+
+                        {/* Steelman */}
+                        <button onClick={() => setSidePanel(p => p === 'steelman' ? null : 'steelman')}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
                             style={{
-                                background: sidePanel === 'noticed' ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)',
-                                border: sidePanel === 'noticed' ? '1px solid rgba(16,185,129,0.3)' : '1px solid var(--border)',
-                                color: sidePanel === 'noticed' ? '#6ee7b7' : 'var(--text-muted)',
+                                background: sidePanel === 'steelman' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${sidePanel === 'steelman' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                color: sidePanel === 'steelman' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
                             }}
-                            title="CLARIBB Noticed"
-                        >
+                            title="Steelman arguments">
+                            <Sword className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Serendipity */}
+                        <button onClick={() => setSidePanel(p => p === 'serendipity' ? null : 'serendipity')}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                            style={{
+                                background: sidePanel === 'serendipity' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${sidePanel === 'serendipity' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                color: sidePanel === 'serendipity' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
+                            }}
+                            title="Serendipity — random connections">
+                            <Shuffle className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Hypotheses */}
+                        <button onClick={() => { setShowHypotheses(true); generateHypotheses(); }}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                            style={{
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.07)',
+                                color: 'rgba(255,255,255,0.35)',
+                            }}
+                            title="Generate Hypotheses">
+                            <Lightbulb className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Deep Research */}
+                        <button onClick={() => { setShowDeepResearch(true); setDrQuery(''); setDrResult(null); setDrProgress(null); }}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                            style={{
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.07)',
+                                color: 'rgba(255,255,255,0.35)',
+                            }}
+                            title="Deep Research">
+                            <Search className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Export Brief */}
+                        <button onClick={() => { setShowBrief(true); generateBrief(); }}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                            style={{
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.07)',
+                                color: 'rgba(255,255,255,0.35)',
+                            }}
+                            title="Export Research Brief">
+                            <FileText className="w-3.5 h-3.5" />
+                        </button>
+
+                        <div className="w-px h-5 mx-1" style={{ background: 'rgba(255,255,255,0.07)' }} />
+
+                        {/* CLARIBB Noticed */}
+                        <button onClick={() => setSidePanel(p => p === 'noticed' ? null : 'noticed')}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105 relative"
+                            style={{
+                                background: sidePanel === 'noticed' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${sidePanel === 'noticed' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                color: sidePanel === 'noticed' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
+                            }}
+                            title="CLARIBB Noticed">
                             <Eye className="w-3.5 h-3.5" />
                             {sageNotices.length > 0 && (
                                 <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
-                                    style={{ background: '#6ee7b7', color: '#0f172a' }}
-                                >
+                                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                                    className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center"
+                                    style={{ background: '#E83E8C', color: '#fff' }}>
                                     {sageNotices.length}
                                 </motion.span>
                             )}
                         </button>
-                        <button
-                            onClick={() => setSidePanel(p => p === 'memory' ? null : 'memory')}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+
+                        {/* Knowledge Graph */}
+                        <button onClick={() => router.push(`/dashboard/graph/${projectId}`)}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
                             style={{
-                                background: sidePanel === 'memory' ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
-                                border: sidePanel === 'memory' ? '1px solid rgba(99,102,241,0.3)' : '1px solid var(--border)',
-                                color: sidePanel === 'memory' ? '#a5b4fc' : 'var(--text-muted)',
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.07)',
+                                color: 'rgba(255,255,255,0.35)',
                             }}
-                            title="Memory Bank"
-                        >
+                            title="Knowledge Graph">
+                            <Network className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Memory Bank */}
+                        <button onClick={() => setSidePanel(p => p === 'memory' ? null : 'memory')}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                            style={{
+                                background: sidePanel === 'memory' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${sidePanel === 'memory' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                color: sidePanel === 'memory' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
+                            }}
+                            title="Memory Bank">
                             <Database className="w-3.5 h-3.5" />
                         </button>
                     </div>
-                </div>
-
-                {/* Header — Row 2: AI Feature toolbar */}
-                <div className="flex items-center gap-2 px-5 py-2 border-b overflow-x-auto scrollbar-hide shrink-0"
-                    style={{ borderColor: 'rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.15)' }}>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider shrink-0" style={{ color: 'var(--text-muted)' }}>AI Features</span>
-                    <div className="w-px h-3.5 shrink-0" style={{ background: 'var(--border)' }} />
-
-                    {[
-                        { key: 'steelman', icon: Sword, label: 'Steelman', color: '#f87171', activeBg: 'rgba(239,68,68,0.15)', activeBorder: 'rgba(239,68,68,0.4)' },
-                        { key: 'serendipity', icon: Shuffle, label: 'Serendipity', color: '#67e8f9', activeBg: 'rgba(6,182,212,0.15)', activeBorder: 'rgba(6,182,212,0.4)' },
-                        { key: 'evolution', icon: TrendingUp, label: 'Evolution', color: '#a5b4fc', activeBg: 'rgba(99,102,241,0.15)', activeBorder: 'rgba(99,102,241,0.4)' },
-                        { key: 'trajectory', icon: Telescope, label: 'Trajectory', color: '#c084fc', activeBg: 'rgba(168,85,247,0.15)', activeBorder: 'rgba(168,85,247,0.4)' },
-                    ].map(({ key, icon: Icon, label, color, activeBg, activeBorder }) => {
-                        const isActive = sidePanel === key;
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => setSidePanel(p => p === key ? null : key as typeof sidePanel)}
-                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 shrink-0"
-                                style={{
-                                    background: isActive ? activeBg : 'rgba(255,255,255,0.04)',
-                                    border: `1px solid ${isActive ? activeBorder : 'var(--border)'}`,
-                                    color: isActive ? color : 'var(--text-muted)',
-                                }}
-                            >
-                                <Icon className="w-3 h-3" /> {label}
-                            </button>
-                        );
-                    })}
-
-                    <div className="w-px h-3.5 shrink-0" style={{ background: 'var(--border)' }} />
-
-                    <button
-                        onClick={() => { setShowDeepResearch(true); setDrQuery(''); setDrResult(null); setDrProgress(null); }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 shrink-0"
-                        style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.25)', color: '#a855f7' }}
-                    >
-                        <Search className="w-3 h-3" /> Deep Research
-                    </button>
-                    <button
-                        onClick={() => { setShowHypotheses(true); generateHypotheses(); }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 shrink-0"
-                        style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.22)', color: '#fbbf24' }}
-                    >
-                        <Lightbulb className="w-3 h-3" /> Hypotheses
-                    </button>
-                    <button
-                        onClick={() => { setShowBrief(true); generateBrief(); }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105 shrink-0"
-                        style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.18)', color: '#6ee7b7' }}
-                    >
-                        <FileText className="w-3 h-3" /> Export Brief
-                    </button>
                 </div>
 
                 {/* Messages */}
@@ -1240,13 +1264,30 @@ export default function WorkspacePage() {
                 </div>
 
                 {/* Input */}
-                <div className="shrink-0 px-5 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
-                    <div className="relative flex items-end gap-3 p-3 rounded-2xl" style={{
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border-strong)',
-                        boxShadow: streaming ? '0 0 24px rgba(99,102,241,0.2)' : 'none',
-                        transition: 'box-shadow 0.3s',
+                <div className="shrink-0 px-5 pb-5 pt-3" style={{ background: 'var(--bg-primary)' }}>
+                    <div className="relative flex items-end gap-3 px-4 py-3 rounded-2xl" style={{
+                        background: 'rgba(15,15,18,0.9)',
+                        border: streaming ? '1px solid rgba(232,62,140,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: streaming ? '0 0 24px rgba(232,62,140,0.15)' : '0 4px 24px rgba(0,0,0,0.4)',
+                        backdropFilter: 'blur(16px)',
+                        transition: 'all 0.3s',
                     }}>
+                        {/* Memory Preview indicator */}
+                        <AnimatePresence>
+                            {memoryPreview && !streaming && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 4 }}
+                                    className="absolute -top-8 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium pointer-events-none"
+                                    style={{ background: 'rgba(167,139,212,0.15)', border: '1px solid rgba(167,139,212,0.3)', color: '#A78BD4' }}
+                                >
+                                    <Brain className="w-2.5 h-2.5" />
+                                    {memoryPreview.count} memories match · {Math.round(memoryPreview.confidence * 100)}% relevance
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <textarea
                             ref={textareaRef}
                             value={input}
@@ -1256,28 +1297,13 @@ export default function WorkspacePage() {
                             disabled={streaming}
                             rows={1}
                             className="flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed"
-                            style={{ color: 'var(--text-primary)', maxHeight: '160px', minHeight: '24px' }}
+                            style={{ color: 'var(--text-primary)', maxHeight: '160px', minHeight: '24px', caretColor: '#E83E8C' }}
                         />
-                        {/* 🔥 Memory Preview indicator */}
-                        <AnimatePresence>
-                            {memoryPreview && !streaming && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 4 }}
-                                    className="absolute -top-7 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium pointer-events-none"
-                                    style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc' }}
-                                >
-                                    <Brain className="w-2.5 h-2.5" />
-                                    {memoryPreview.count} memories match · {Math.round(memoryPreview.confidence * 100)}% relevance
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
 
                         {streaming ? (
                             <button onClick={() => abortRef.current?.abort()}
-                                className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
-                                style={{ background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.3)', color: '#fb7185' }}>
+                                className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+                                style={{ background: 'rgba(232,62,140,0.15)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
                                 <StopCircle className="w-4 h-4" />
                             </button>
                         ) : (
@@ -1285,49 +1311,30 @@ export default function WorkspacePage() {
                                 {voiceSupported && (
                                     <button
                                         onClick={voiceActive ? stopVoice : startVoice}
-                                        className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
+                                        className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
                                         style={voiceActive
-                                            ? { background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', color: '#ef4444', boxShadow: '0 0 16px rgba(239,68,68,0.4)' }
-                                            : { background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
+                                            ? { background: 'rgba(232,62,140,0.2)', border: '1px solid rgba(232,62,140,0.5)', color: '#E83E8C', boxShadow: '0 0 16px rgba(232,62,140,0.4)' }
+                                            : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
                                         }
                                         title={voiceActive ? 'Stop listening' : 'Speak your question'}
                                     >
-                                        {voiceActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                                        {voiceActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
                                     </button>
                                 )}
                                 <button onClick={sendMessage} disabled={!input.trim()}
-                                    className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-30"
-                                    style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 0 16px rgba(99,102,241,0.4)' }}>
-                                    <Send className="w-4 h-4 text-white" />
+                                    className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-30"
+                                    style={{
+                                        background: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.06)',
+                                        boxShadow: input.trim() ? '0 0 20px rgba(232,62,140,0.5)' : 'none',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                    }}>
+                                    <Send className="w-3.5 h-3.5 text-white" />
                                 </button>
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center justify-between mt-2 px-1">
-                        <div className="flex items-center gap-2">
-                            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                                Enter to send · Shift+Enter for new line
-                            </p>
-                            {voiceSupported && (
-                                <button
-                                    onClick={() => setSpeakResponses(s => !s)}
-                                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] transition-all"
-                                    style={speakResponses
-                                        ? { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent-light)' }
-                                        : { background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
-                                    }
-                                    title="Toggle CLARIBB voice responses"
-                                >
-                                    <Volume2 className="w-2.5 h-2.5" /> Voice {speakResponses ? 'ON' : 'OFF'}
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <FlaskConical className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-                            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Critique mode challenges assumptions</p>
-                        </div>
-                    </div>
                 </div>
+
 
                 {/* ── CENTER section closes here, outer div continues */}
 
