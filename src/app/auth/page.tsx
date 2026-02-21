@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Brain, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
@@ -121,15 +122,15 @@ export default function AuthPage() {
                     style={{ background: 'radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 70%)' }} />
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-3 group cursor-pointer">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{
                             background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
                             boxShadow: '0 0 30px rgba(99,102,241,0.6)',
                         }}>
                             <Brain className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>SAGE</span>
-                    </div>
+                        <span className="text-2xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>SAGE</span>
+                    </Link>
                 </div>
 
                 <div className="relative z-10">
@@ -181,12 +182,12 @@ export default function AuthPage() {
                     className="w-full max-w-md"
                 >
                     {/* Mobile logo */}
-                    <div className="flex items-center gap-2 mb-10 lg:hidden">
+                    <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden cursor-pointer group">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f1, #06b6d4)' }}>
                             <Brain className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>SAGE</span>
-                    </div>
+                        <span className="text-xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>SAGE</span>
+                    </Link>
 
                     <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                         {mode === 'login' ? 'Welcome back' : 'Start researching'}

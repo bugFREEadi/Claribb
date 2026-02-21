@@ -625,12 +625,18 @@ function DemoSearchBar() {
     const MAX_FREE = 4;
 
     useEffect(() => {
+        let hideTimer: ReturnType<typeof setTimeout> | null = null;
         const onScroll = () => {
             setScrolled(window.scrollY > 80);
-            setChatHidden(true); // always hide chat on scroll
+            // debounce: only hide chat after 350ms of continuous scroll
+            if (hideTimer) clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => setChatHidden(true), 350);
         };
         window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            if (hideTimer) clearTimeout(hideTimer);
+        };
     }, []);
 
     useEffect(() => {
