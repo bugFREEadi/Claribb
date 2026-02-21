@@ -83,7 +83,7 @@ export default function Sidebar() {
                         className="text-lg font-bold"
                         style={{ color: 'var(--text-primary)' }}
                     >
-                        SAGE
+                        CLARIBB
                     </motion.span>
                 )}
             </div>

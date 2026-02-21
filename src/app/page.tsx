@@ -1,6 +1,6 @@
 'use client';
 /**
- * SAGE Landing Page — entry point
+ * CLARIBB Landing Page — entry point
  *
  * We use `ssr: false` to completely skip server-side rendering for the
  * animated landing page. This is the definitive fix for React 19 /

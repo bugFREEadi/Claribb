@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
                 try {
                     // ── 🔥 FEATURE 1: Live Chain of Thought ──
-                    enqueue({ type: 'thinking', step: 'start', message: '🧠 SAGE is waking up...', ts: Date.now() });
+                    enqueue({ type: 'thinking', step: 'start', message: '🧠 CLARIBB is waking up...', ts: Date.now() });
 
                     // Run orchestration with live status emissions
                     const { agentOutputs, contextBundle, memoriesUsed, memoryConfidence } =

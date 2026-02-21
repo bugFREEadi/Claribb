@@ -52,7 +52,7 @@ export default function MemoryFormingToast({ event }: Props) {
                         >
                             <Brain className="w-3.5 h-3.5 text-white" />
                         </motion.div>
-                        <span className="text-xs font-semibold" style={{ color: '#a5b4fc' }}>SAGE is learning</span>
+                        <span className="text-xs font-semibold" style={{ color: '#a5b4fc' }}>CLARIBB is learning</span>
                         <motion.div
                             animate={{ opacity: [1, 0.3, 1] }}
                             transition={{ duration: 1, repeat: 3 }}

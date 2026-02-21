@@ -49,7 +49,7 @@ async function embedWithCohere(text: string, attempt = 0): Promise<number[]> {
             return embedWithCohere(text, attempt + 1);
         }
         // Final fallback: zero vector so the app doesn't crash
-        // Recall agent returns 0 memories; SAGE answers from general knowledge
+        // Recall agent returns 0 memories; CLARIBB answers from general knowledge
         console.error('Cohere embedding failed:', msg);
         return new Array(1536).fill(0);
     }

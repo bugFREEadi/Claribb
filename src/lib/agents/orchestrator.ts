@@ -410,7 +410,7 @@ export async function orchestrate(input: OrchestratorInput): Promise<Orchestrato
 
 // Build the final synthesis prompt
 export function buildSystemPrompt(contextBundle: string): string {
-    return `You are SAGE, a multi-agent AI research intelligence system. You have access to the user's personal research memory, which has been carefully retrieved based on their query.
+    return `You are CLARIBB, a multi-agent AI research intelligence system. You have access to the user's personal research memory, which has been carefully retrieved based on their query.
 
 CORE RULES:
 - Always ground your responses in the retrieved memory first

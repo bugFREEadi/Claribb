@@ -402,7 +402,7 @@ export default function DashboardPage() {
                         Create your first research project
                     </h3>
                     <p className="text-sm mb-8 max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                        Start building your persistent research brain. SAGE will remember everything across every session.
+                        Start building your persistent research brain. CLARIBB will remember everything across every session.
                     </p>
                     <div className="flex items-center justify-center gap-4">
                         <button

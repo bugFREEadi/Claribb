@@ -52,7 +52,7 @@ export default function SettingsPage() {
         <div className="p-8 max-w-2xl mx-auto">
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
                 <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Settings</h1>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Manage your SAGE workspace preferences</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Manage your CLARIBB workspace preferences</p>
             </motion.div>
 
             <Section icon={User} title="Profile" color="#6366f1">
@@ -89,7 +89,7 @@ export default function SettingsPage() {
                             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                         />
                         <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
-                            Helps SAGE tailor its responses to your field
+                            Helps CLARIBB tailor its responses to your field
                         </p>
                     </div>
                 </div>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                         <div>
                             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Auto-save chat responses</p>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Store SAGE answers as memory chunks</p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Store CLARIBB answers as memory chunks</p>
                         </div>
                         <div className="w-10 h-6 rounded-full flex items-center px-1 cursor-pointer" style={{ background: 'var(--accent)' }}>
                             <div className="w-4 h-4 rounded-full bg-white ml-auto transition-all" />

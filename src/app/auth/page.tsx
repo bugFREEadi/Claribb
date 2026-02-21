@@ -129,7 +129,7 @@ export default function AuthPage() {
                         }}>
                             <Brain className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-2xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>SAGE</span>
+                        <span className="text-2xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>CLARIBB</span>
                     </Link>
                 </div>
 
@@ -140,7 +140,7 @@ export default function AuthPage() {
                             <span className="text-gradient">permanently remembered.</span>
                         </h2>
                         <p className="text-lg leading-relaxed mb-12" style={{ color: 'var(--text-secondary)' }}>
-                            SAGE builds a persistent model of your knowledge — deploying four specialized agents
+                            CLARIBB builds a persistent model of your knowledge — deploying four specialized agents
                             that think, search, challenge, and connect on your behalf.
                         </p>
 
@@ -150,7 +150,7 @@ export default function AuthPage() {
                             border: '1px solid rgba(99,102,241,0.2)',
                         }}>
                             <p className="text-base italic mb-4" style={{ color: 'var(--text-secondary)' }}>
-                                "SAGE found a connection between my Session 4 notes and a paper I uploaded in Session 12. I wouldn't have seen that in months of solo research."
+                                "CLARIBB found a connection between my Session 4 notes and a paper I uploaded in Session 12. I wouldn't have seen that in months of solo research."
                             </p>
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #6366f1, #06b6d4)' }}>A</div>
@@ -186,7 +186,7 @@ export default function AuthPage() {
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f1, #06b6d4)' }}>
                             <Brain className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>SAGE</span>
+                        <span className="text-xl font-bold group-hover:opacity-80 transition-opacity" style={{ color: 'var(--text-primary)' }}>CLARIBB</span>
                     </Link>
 
                     <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>

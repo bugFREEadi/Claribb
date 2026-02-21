@@ -46,7 +46,7 @@ export default function SAGENoticedPanel({ notices, memoryCount, sessionCount, d
                         <Brain className="w-3.5 h-3.5 text-white" />
                     </motion.div>
                     <div>
-                        <div className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>SAGE Noticed</div>
+                        <div className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>CLARIBB Noticed</div>
                         <div className="text-[9px]" style={{ color: 'var(--text-muted)' }}>Live intelligence feed</div>
                     </div>
                     <motion.div
@@ -97,7 +97,7 @@ export default function SAGENoticedPanel({ notices, memoryCount, sessionCount, d
                     <div className="text-center py-8">
                         <Brain className="w-8 h-8 mx-auto mb-2 opacity-20" style={{ color: 'var(--text-muted)' }} />
                         <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                            SAGE will surface insights as you research...
+                            CLARIBB will surface insights as you research...
                         </p>
                     </div>
                 ) : (

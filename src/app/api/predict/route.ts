@@ -102,10 +102,10 @@ Return JSON ONLY:
             await supabase.from('memory_chunks').insert({
                 user_id: user.id,
                 project_id: projectId,
-                content: `[SAGE PREDICTION] ${result.final_position_prediction || ''}\nNext questions: ${result.next_questions?.map((q: { question: string }) => q.question).join('; ')}`,
+                content: `[CLARIBB PREDICTION] ${result.final_position_prediction || ''}\nNext questions: ${result.next_questions?.map((q: { question: string }) => q.question).join('; ')}`,
                 embedding: Array(1536).fill(0),
                 source_type: 'note',
-                source_label: `SAGE Prediction — ${new Date().toLocaleDateString()}`,
+                source_label: `CLARIBB Prediction — ${new Date().toLocaleDateString()}`,
                 importance_score: 0.9,
                 metadata: { type: 'prediction', data: predictionRecord },
             });

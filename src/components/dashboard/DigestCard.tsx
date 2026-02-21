@@ -32,7 +32,7 @@ export default function DigestCard({ digest, onDismiss }: Props) {
             <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-light)' }} />
                 <span className="text-sm font-semibold" style={{ color: 'var(--accent-light)' }}>
-                    🌙 While You Were Away — SAGE Research Update
+                    🌙 While You Were Away — CLARIBB Research Update
                 </span>
             </div>
 

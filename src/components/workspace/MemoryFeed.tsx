@@ -55,7 +55,7 @@ export default function MemoryFeed({ projectId }: Props) {
             <div className="mb-8">
                 <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Add to Memory Graph</h2>
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    Feed your research into SAGE. Paste notes, articles, papers, or URLs — they&apos;ll be chunked, embedded, and made available in your research conversations.
+                    Feed your research into CLARIBB. Paste notes, articles, papers, or URLs — they&apos;ll be chunked, embedded, and made available in your research conversations.
                 </p>
             </div>
 
@@ -92,7 +92,7 @@ export default function MemoryFeed({ projectId }: Props) {
                                 onChange={e => setContent(e.target.value)}
                                 placeholder="Paste your notes, article text, research summaries, paper excerpts...
 
-SAGE will automatically:
+CLARIBB will automatically:
 • Chunk it into semantic segments
 • Embed each chunk for retrieval
 • Extract key concepts for your knowledge graph
@@ -133,7 +133,7 @@ SAGE will automatically:
                                 />
                             </div>
                             <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                                SAGE will extract the text content, chunk it, and add it to your memory graph.
+                                CLARIBB will extract the text content, chunk it, and add it to your memory graph.
                             </p>
                         </div>
 

@@ -119,7 +119,7 @@ export default function TrajectoryPanel({ projectId, onClose }: Props) {
                                 <div className="text-center py-6">
                                     <Telescope className="w-8 h-8 mx-auto mb-2 opacity-20" style={{ color: 'var(--text-muted)' }} />
                                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{data.message}</p>
-                                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>Start researching and SAGE will predict your trajectory.</p>
+                                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>Start researching and CLARIBB will predict your trajectory.</p>
                                 </div>
                             )}
 
@@ -160,7 +160,7 @@ export default function TrajectoryPanel({ projectId, onClose }: Props) {
                                     {data.next_questions?.length > 0 && (
                                         <div className="space-y-2">
                                             <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                                                🔮 SAGE Predicts You'll Ask
+                                                🔮 CLARIBB Predicts You'll Ask
                                             </div>
                                             {data.next_questions.map((q, i) => (
                                                 <motion.div
@@ -254,7 +254,7 @@ export default function TrajectoryPanel({ projectId, onClose }: Props) {
                                     )}
 
                                     <p className="text-[9px] text-center" style={{ color: 'var(--text-muted)' }}>
-                                        Predictions stored — SAGE will verify accuracy later
+                                        Predictions stored — CLARIBB will verify accuracy later
                                     </p>
                                 </>
                             )}

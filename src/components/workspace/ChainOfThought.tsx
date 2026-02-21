@@ -64,7 +64,7 @@ export default function ChainOfThought({ steps, isThinking }: Props) {
                     <Brain className="w-3 h-3 text-white" />
                 </motion.div>
                 <span className="text-[11px] font-semibold" style={{ color: '#a5b4fc' }}>
-                    SAGE Chain of Thought
+                    CLARIBB Chain of Thought
                 </span>
                 {isThinking && (
                     <motion.div

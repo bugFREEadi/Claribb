@@ -678,7 +678,7 @@ export default function WorkspacePage() {
         }, 600);
     }, [projectId]);
 
-    // ── Add SAGE Notice helper ────────────────────────────────────
+    // ── Add CLARIBB Notice helper ────────────────────────────────────
     const addNotice = useCallback((notice: Omit<SAGENotice, 'id' | 'timestamp'>) => {
         setSageNotices(prev => [...prev, {
             ...notice,
@@ -790,7 +790,7 @@ export default function WorkspacePage() {
                                 confidence,
                             });
 
-                            // ── 🔥 UPDATE SAGE NOTICED PANEL ──
+                            // ── 🔥 UPDATE CLARIBB NOTICED PANEL ──
                             if (memoriesUsed >= 5) {
                                 addNotice({ type: 'growing', text: `Your research on this topic now spans ${memoriesUsed} memory fragments across sessions.`, color: '#6ee7b7' });
                             }
@@ -803,7 +803,7 @@ export default function WorkspacePage() {
                                 addNotice({ type: 'connection', text: `New link: "${conn.from}" ↔ "${conn.to}" — ${conn.description?.slice(0, 70) ?? ''}`, color: '#67e8f9' });
                             }
                             if (messages.length === 1) {
-                                addNotice({ type: 'milestone', text: 'First memory stored! SAGE will get smarter with every question.', color: '#a5b4fc' });
+                                addNotice({ type: 'milestone', text: 'First memory stored! CLARIBB will get smarter with every question.', color: '#a5b4fc' });
                             }
 
                             // ── 🔥 INCREMENT DEPTH SCORE ──
@@ -1114,7 +1114,7 @@ export default function WorkspacePage() {
                                 border: sidePanel === 'noticed' ? '1px solid rgba(16,185,129,0.3)' : '1px solid var(--border)',
                                 color: sidePanel === 'noticed' ? '#6ee7b7' : 'var(--text-muted)',
                             }}
-                            title="SAGE Noticed"
+                            title="CLARIBB Noticed"
                         >
                             <Eye className="w-3.5 h-3.5" />
                             {sageNotices.length > 0 && (
@@ -1210,7 +1210,7 @@ export default function WorkspacePage() {
                             </div>
                             <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Start your research session</h2>
                             <p className="text-sm mb-2 max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                                Ask anything. SAGE recalls memories, fills gaps with web research, challenges assumptions, and surfaces hidden connections.
+                                Ask anything. CLARIBB recalls memories, fills gaps with web research, challenges assumptions, and surfaces hidden connections.
                             </p>
                             <p className="text-xs mb-8" style={{ color: 'var(--text-muted)' }}>
                                 💡 Load demo memories in the Memory Bank → then ask about AI alignment.
@@ -1252,7 +1252,7 @@ export default function WorkspacePage() {
                             value={input}
                             onChange={autoResize}
                             onKeyDown={handleKeyDown}
-                            placeholder="Ask SAGE anything about your research…"
+                            placeholder="Ask CLARIBB anything about your research…"
                             disabled={streaming}
                             rows={1}
                             className="flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed"
@@ -1316,7 +1316,7 @@ export default function WorkspacePage() {
                                         ? { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: 'var(--accent-light)' }
                                         : { background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: 'var(--text-muted)' }
                                     }
-                                    title="Toggle SAGE voice responses"
+                                    title="Toggle CLARIBB voice responses"
                                 >
                                     <Volume2 className="w-2.5 h-2.5" /> Voice {speakResponses ? 'ON' : 'OFF'}
                                 </button>
@@ -1415,7 +1415,7 @@ export default function WorkspacePage() {
                     )}
                 </AnimatePresence>
 
-                {/* 🔥 SAGE Noticed Panel */}
+                {/* 🔥 CLARIBB Noticed Panel */}
                 <AnimatePresence>
                     {sidePanel === 'noticed' && (
                         <motion.div
@@ -1548,7 +1548,7 @@ export default function WorkspacePage() {
                                                     <button onClick={() => setShowDeepResearch(false)}
                                                         className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
                                                         style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
-                                                    >Done — Ask SAGE About It</button>
+                                                    >Done — Ask CLARIBB About It</button>
                                                 </div>
                                             </div>
                                         )}
@@ -1683,7 +1683,7 @@ export default function WorkspacePage() {
                                             </div>
                                         ) : hypotheses.length === 0 ? (
                                             <div className="text-center py-16">
-                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not enough research data yet. Chat with SAGE and build up your knowledge graph first.</p>
+                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Not enough research data yet. Chat with CLARIBB and build up your knowledge graph first.</p>
                                             </div>
                                         ) : hypotheses.map((h, i) => {
                                             const typeColors: Record<string, string> = { tension: '#ef4444', gap: '#f59e0b', bridge: '#06b6d4', extension: '#10b981', prediction: '#a855f7' };

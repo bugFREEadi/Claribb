@@ -81,7 +81,7 @@ export default function SerendipityPanel({ projectId, currentQuery, onClose }: P
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 <div className="space-y-3">
                     <label className="text-xs font-medium block" style={{ color: 'var(--text-secondary)' }}>
-                        What are you researching? SAGE will search ALL your other projects.
+                        What are you researching? CLARIBB will search ALL your other projects.
                     </label>
                     <textarea
                         value={query}

@@ -190,10 +190,10 @@ export default function ChatInterface({ projectId, sessionId, lastSession, onSes
                                 <Brain className="w-10 h-10" style={{ color: 'var(--accent-light)' }} />
                             </div>
                             <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                                SAGE is listening
+                                CLARIBB is listening
                             </h3>
                             <p className="text-sm max-w-sm" style={{ color: 'var(--text-secondary)' }}>
-                                Ask anything about your research. SAGE will retrieve your memories,
+                                Ask anything about your research. CLARIBB will retrieve your memories,
                                 search for gaps, and challenge your assumptions — in parallel.
                             </p>
                         </motion.div>
@@ -292,7 +292,7 @@ export default function ChatInterface({ projectId, sessionId, lastSession, onSes
                                 e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
                             }}
                             onKeyDown={handleKeyDown}
-                            placeholder="Ask SAGE about your research..."
+                            placeholder="Ask CLARIBB about your research..."
                             disabled={loading}
                             rows={1}
                             className="w-full px-4 py-3 pr-4 rounded-xl text-sm resize-none transition-all"
@@ -330,7 +330,7 @@ export default function ChatInterface({ projectId, sessionId, lastSession, onSes
                 </div>
 
                 <p className="text-center text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                    Enter to send · Shift+Enter for new line · SAGE retrieves from {' '}
+                    Enter to send · Shift+Enter for new line · CLARIBB retrieves from {' '}
                     <span style={{ color: 'var(--accent-light)' }}>your memory graph</span>
                 </p>
             </div>

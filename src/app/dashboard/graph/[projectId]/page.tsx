@@ -338,7 +338,7 @@ export default function GraphPage({ params }: Props) {
                                         Your knowledge graph is empty
                                     </h3>
                                     <p className="text-sm max-w-sm" style={{ color: 'var(--text-secondary)' }}>
-                                        Start a research conversation and SAGE will automatically extract concepts and build your knowledge graph in real time.
+                                        Start a research conversation and CLARIBB will automatically extract concepts and build your knowledge graph in real time.
                                     </p>
                                 </div>
                                 <button onClick={() => router.push(`/dashboard/workspace/${projectId}`)}

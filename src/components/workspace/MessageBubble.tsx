@@ -88,7 +88,7 @@ export default function MessageBubble({ message }: Props) {
                                             />
                                         ))}
                                     </div>
-                                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>SAGE is thinking...</span>
+                                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>CLARIBB is thinking...</span>
                                 </div>
                             )}
                         </>
