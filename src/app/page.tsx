@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Brain, ArrowRight, Network, Shield, Search, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
 
+/* ── SSR-safe mount guard ───────────────────
+   Prevents hydration mismatch for browser-only components.
+   Returns false on server, true only after first client paint. */
+function useMounted() {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+    return mounted;
+}
+
 /* ── Typewriter ──────────────────────────── */
 function useTypewriter(words: string[], speed = 48, pause = 2200) {
     const [text, setText] = useState('');
@@ -50,8 +59,9 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
     );
 }
 
-/* ── Hero grid — mouse-parallax ──────────── */
+/* ── Hero grid — mouse-parallax ───────────────── */
 function HeroGrid() {
+    const mounted = useMounted();
     const mx = useMotionValue(0);
     const my = useMotionValue(0);
     const gx = useSpring(mx, { stiffness: 40, damping: 20 });
@@ -64,6 +74,8 @@ function HeroGrid() {
         window.addEventListener('mousemove', onMove);
         return () => window.removeEventListener('mousemove', onMove);
     }, [onMove]);
+    /* Don't render on server — avoids SSR/CSR window mismatch */
+    if (!mounted) return null;
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div className="absolute inset-[-8%]" style={{ x: gx, y: gy }}>
@@ -103,8 +115,9 @@ function AnimCounter({ target, suffix = '' }: { target: number; suffix?: string 
     return <span ref={ref}>{n}{suffix}</span>;
 }
 
-/* ── Neural diagram ──────────────────────── */
+/* ── Neural diagram ────────────────────────── */
 function NeuralDiagram() {
+    const mounted = useMounted();
     const nodes = [
         { x: 55, y: 140, r: 4 }, { x: 55, y: 215, r: 3 }, { x: 55, y: 290, r: 4 },
         { x: 175, y: 95, r: 5 }, { x: 175, y: 190, r: 4 }, { x: 175, y: 280, r: 3 }, { x: 175, y: 355, r: 4 },
@@ -113,6 +126,8 @@ function NeuralDiagram() {
         { x: 520, y: 232, r: 11 },
     ];
     const edges = [[0, 3], [0, 4], [1, 3], [1, 4], [1, 5], [2, 4], [2, 5], [2, 6], [3, 7], [3, 8], [4, 7], [4, 8], [4, 9], [5, 8], [5, 9], [6, 9], [7, 10], [7, 11], [8, 10], [8, 11], [9, 11], [10, 12], [11, 12]];
+    /* Don't render on server — framer-motion SVG cx/cy animate causes hydration mismatch */
+    if (!mounted) return <svg viewBox="0 0 580 450" className="w-full h-full" />;
     return (
         <svg viewBox="0 0 580 450" className="w-full h-full">
             <defs>
