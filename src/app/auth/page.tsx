@@ -226,10 +226,10 @@ export default function AuthPage() {
         <>
             <InjectCSS css={EDGE_CSS} />
             <div style={{
-                minHeight: '100vh', background: '#000000', color: '#E6F4EF',
+                height: '100vh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                position: 'relative', overflow: 'hidden', zoom: 0.9,
+                display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '0',
+                position: 'relative', overflow: 'hidden',
             }}>
                 {/* Ambient top glow */}
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 50% 0%, rgba(232,62,140,0.05) 0%, transparent 100%)' }} />
@@ -312,24 +312,24 @@ export default function AuthPage() {
                 </Orbiter>
 
                 {/* ── LEFT SIDEBAR ── */}
-                <div style={{ flex: 1, padding: '4rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '45%' }}>
+                <div style={{ flex: 1, padding: '2.5rem 2rem 2.5rem 4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '54%', minWidth: 0 }}>
                     {/* Logo */}
-                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '3rem', textDecoration: 'none' }}>
+                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
                         <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
                     </Link>
 
-                    <h1 style={{ fontSize: '2.8rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#E6F4EF', marginBottom: '1rem', lineHeight: 1.2 }}>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#E6F4EF', marginBottom: '0.75rem', lineHeight: 1.2 }}>
                         Your research,<br />permanently remembered.
                     </h1>
 
-                    <p style={{ fontSize: '0.95rem', color: 'rgba(230,244,239,0.55)', marginBottom: '2.5rem', lineHeight: 1.7, maxWidth: '500px' }}>
+                    <p style={{ fontSize: '0.88rem', color: 'rgba(230,244,239,0.55)', marginBottom: '1.75rem', lineHeight: 1.7, maxWidth: '500px' }}>
                         CLARIBB builds a persistent model of your knowledge — deploying four specialized agents that think, search, challenge, and connect on your behalf.
                     </p>
 
                     {/* Agent live-feed card */}
                     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                        style={{ borderRadius: 12, border: '1px solid rgba(232,62,140,0.15)', background: 'rgba(10,18,16,0.4)', marginBottom: '3rem', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
+                        style={{ borderRadius: 12, border: '1px solid rgba(232,62,140,0.15)', background: 'rgba(10,18,16,0.4)', marginBottom: '2rem', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(232,62,140,0.08)' }}>
                             <motion.div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E83E8C' }}
                                 animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }} />
@@ -355,7 +355,7 @@ export default function AuthPage() {
                     </motion.div>
 
                     {/* Stats */}
-                    <div style={{ display: 'flex', gap: '4rem' }}>
+                    <div style={{ display: 'flex', gap: '3rem' }}>
                         {[['247', 'Memories Indexed'], ['31', 'Sessions Analyzed'], ['74', 'Depth Score']].map(([val, label]) => (
                             <div key={label}>
                                 <p style={{ fontSize: '2rem', fontWeight: 700, color: '#E83E8C', margin: 0 }}>{val}</p>
@@ -368,7 +368,7 @@ export default function AuthPage() {
                 {/* ── AUTH CARD ── */}
                 <motion.div ref={cardRef}
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 414, margin: '1.8rem 3.6rem 1.8rem 0', borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
+                    style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 460, flexShrink: 0, margin: '1.5rem 2.5rem 1.5rem 0', borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
                     <BorderEdge cardRef={cardRef} />
 
                     {done ? (
