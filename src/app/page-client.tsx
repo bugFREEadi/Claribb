@@ -829,42 +829,45 @@ export default function LandingPage() {
         <div style={{ background: C.black, color: C.text, fontFamily: "'Inter',system-ui,sans-serif", minHeight: '100vh', overflowX: 'hidden' }}>
             <ScrollBar />
 
-            {/* ═══ ANNOUNCEMENT BAR ════════════════ */}
-            <div className="flex items-center justify-center gap-2.5 py-1.5 text-[12px] font-medium"
-                style={{ background: '#CD3775', borderBottom: '1px solid rgba(0,0,0,0.2)' }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-white opacity-70" />
-                <span style={{ color: 'rgba(255,255,255,0.92)' }}>SPEEDRUN 2026 · Track 3 — Multi-Agent Research Intelligence</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
-                    style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.28)' }}>BETA</span>
+            {/* ═══ FIXED HEADER (announcement + navbar) ════════════════ */}
+            <div className="fixed top-0 left-0 right-0 z-50" style={{ backdropFilter: 'blur(18px)' }}>
+                {/* ═══ ANNOUNCEMENT BAR ════════════════ */}
+                <div className="flex items-center justify-center gap-2.5 py-1.5 text-[12px] font-medium"
+                    style={{ background: '#CD3775', borderBottom: '1px solid rgba(0,0,0,0.2)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white opacity-70" />
+                    <span style={{ color: 'rgba(255,255,255,0.92)' }}>SPEEDRUN 2026 · Track 3 — Multi-Agent Research Intelligence</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
+                        style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.28)' }}>BETA</span>
+                </div>
+
+                {/* ═══ NAVBAR ════════════════════════════ */}
+                <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42 }}
+                    className="flex items-center justify-between px-8 h-14 max-w-screen-xl mx-auto"
+                    style={{ background: 'rgba(0,0,0,0.92)', borderBottom: `1px solid ${C.border}` }}>
+                    {/* Logo */}
+                    <div className="flex items-center gap-2.5">
+                        <Brain className="w-5 h-5" style={{ color: C.sec }} />
+                        <span className="text-[15px] font-semibold tracking-tight">CLARIBB</span>
+                    </div>
+                    {/* Links */}
+                    <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
+                        {[['Agents', '#agents'], ['How it Works', '#how-it-works'], ['Features', '#features']].map(([l, h]) => (
+                            <a key={l} href={h} className="hover:text-white transition-colors duration-150">{l}</a>
+                        ))}
+                    </div>
+                    {/* CTAs */}
+                    <div className="flex items-center gap-3">
+                        <Link href="/auth" className="text-[13.5px] transition-colors hover:text-white" style={{ color: C.muted }}>Sign in</Link>
+                        <Link href="/auth" className="flex items-center gap-1.5 px-4 py-1.5 rounded-[8px] text-[13.5px] font-medium hover:opacity-90 transition-opacity"
+                            style={{ background: C.text, color: C.black }}>
+                            Get started <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                    </div>
+                </motion.nav>
             </div>
 
-            {/* ═══ NAVBAR ════════════════════════════ */}
-            <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42 }}
-                className="sticky top-0 z-50 flex items-center justify-between px-8 h-14 max-w-screen-xl mx-auto"
-                style={{ background: 'rgba(0,0,0,0.92)', borderBottom: `1px solid ${C.border}`, backdropFilter: 'blur(18px)' }}>
-                {/* Logo */}
-                <div className="flex items-center gap-2.5">
-                    <Brain className="w-5 h-5" style={{ color: C.sec }} />
-                    <span className="text-[15px] font-semibold tracking-tight">CLARIBB</span>
-                </div>
-                {/* Links */}
-                <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
-                    {[['Agents', '#agents'], ['How it Works', '#how-it-works'], ['Features', '#features']].map(([l, h]) => (
-                        <a key={l} href={h} className="hover:text-white transition-colors duration-150">{l}</a>
-                    ))}
-                </div>
-                {/* CTAs */}
-                <div className="flex items-center gap-3">
-                    <Link href="/auth" className="text-[13.5px] transition-colors hover:text-white" style={{ color: C.muted }}>Sign in</Link>
-                    <Link href="/auth" className="flex items-center gap-1.5 px-4 py-1.5 rounded-[8px] text-[13.5px] font-medium hover:opacity-90 transition-opacity"
-                        style={{ background: C.text, color: C.black }}>
-                        Get started <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                </div>
-            </motion.nav>
-
             {/* ═══ HERO ══════════════════════════════ */}
-            <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden">
+            <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden" style={{ paddingTop: 86 }}>
                 <HeroGrid />
                 {/* very subtle glow blob behind heading */}
                 <div className="absolute pointer-events-none" style={{ width: 580, height: 420, top: '10%', left: '8%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.02) 0%,transparent 70%)', borderRadius: '50%' }} />
