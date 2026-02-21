@@ -6,13 +6,17 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Brain, LayoutDashboard, FolderOpen, Network, Settings,
-    LogOut, ChevronLeft, ChevronRight, Plus
+    LogOut, ChevronLeft, ChevronRight, Plus,
+    Globe, FolderKanban, Users
 } from 'lucide-react';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/projects', label: 'Projects', icon: FolderOpen },
+    { href: '/dashboard/groups', label: 'Groups', icon: FolderKanban },
+    { href: '/dashboard/discover', label: 'Discover', icon: Globe },
+    { href: '/dashboard/collab', label: 'Collab', icon: Users },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
