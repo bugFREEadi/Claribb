@@ -32,7 +32,10 @@ function useTypewriter(words: string[], speed = 48, pause = 2200) {
 
 /* ── Scroll-progress line ────────────────── */
 function ScrollBar() {
+    const mounted = useMounted();
     const { scrollYProgress } = useScroll();
+    /* Don't render on server — scaleX MotionValue causes style mismatch */
+    if (!mounted) return null;
     return <motion.div className="fixed top-0 left-0 right-0 z-[100] origin-left" style={{ height: 1.5, scaleX: scrollYProgress, background: '#E83E8C' }} />;
 }
 
@@ -291,6 +294,7 @@ const C = {
    PAGE
 ════════════════════════════════════════════ */
 export default function LandingPage() {
+    const mounted = useMounted();
     const heroRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
     const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '14%']);
@@ -351,8 +355,8 @@ export default function LandingPage() {
                 <div className="absolute pointer-events-none" style={{ width: 580, height: 420, top: '10%', left: '8%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.02) 0%,transparent 70%)', borderRadius: '50%' }} />
 
                 <div className="relative z-10 w-full max-w-screen-xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center py-14">
-                    {/* Left */}
-                    <motion.div style={{ y: heroY, opacity: heroOp }}>
+                    {/* Left — parallax style only applied after mount to avoid SSR mismatch */}
+                    <motion.div style={mounted ? { y: heroY, opacity: heroOp } : {}}>
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
                             <Eyebrow>Multi-Agent Research Intelligence</Eyebrow>
                         </motion.div>
