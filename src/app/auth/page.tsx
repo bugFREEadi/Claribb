@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useMotionValue, animate as fmAnimate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -113,39 +113,47 @@ function Typewriter() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ORBITER
+   ORBITER — pure CSS (GPU-accelerated, zero JS overhead)
 ═══════════════════════════════════════════════════════════════ */
-function Orbiter({ size, top, left, right, bottom, duration, reverse = false, children }: {
-    size: number; top?: string | number; left?: string | number; right?: string | number;
-    bottom?: string | number; duration: number; reverse?: boolean; children: React.ReactNode;
-}) {
-    const rotation = useMotionValue(0);
-    const animRef = useRef<ReturnType<typeof fmAnimate> | null>(null);
+const ORBIT_CSS = `
+  @keyframes spinCW  { to { transform: rotate(360deg);  } }
+  @keyframes spinCCW { to { transform: rotate(-360deg); } }
+  .spin-cw  { animation: spinCW  var(--dur, 60s) linear infinite; will-change: transform; }
+  .spin-ccw { animation: spinCCW var(--dur, 60s) linear infinite; will-change: transform; }
+`;
 
-    const startAnim = (dur: number) => {
-        if (animRef.current) animRef.current.stop();
-        const dir = reverse ? -1 : 1;
-        animRef.current = fmAnimate(rotation, rotation.get() + dir * 36000, {
-            duration: dur * 100,
-            ease: 'linear',
-            repeat: Infinity,
-            repeatType: 'loop' as const,
-        });
-    };
-
-    useEffect(() => {
-        startAnim(duration);
-        return () => animRef.current?.stop();
-    }, []); // eslint-disable-line
-
+function CSSOrbiters() {
     return (
-        <motion.div
-            style={{ position: 'absolute', width: size, height: size, top, left, right, bottom, rotate: rotation }}
-            onMouseEnter={() => startAnim(duration * 0.15)}
-            onMouseLeave={() => startAnim(duration)}
-        >
-            {children}
-        </motion.div>
+        <>
+            {/* Large circle — top-left */}
+            <div className="spin-ccw" style={{ position: 'absolute', top: -240, left: -240, width: 580, height: 580, ['--dur' as string]: '70s', pointerEvents: 'none' }}>
+                <svg width="580" height="580" viewBox="0 0 580 580" fill="none">
+                    <circle cx="290" cy="290" r="288" stroke="rgba(232,62,140,0.06)" strokeWidth="1" strokeDasharray="3 20" />
+                    <circle cx="290" cy="2" r="3.5" fill="rgba(232,62,140,0.5)" />
+                </svg>
+            </div>
+            {/* Medium circle — bottom-right */}
+            <div className="spin-cw" style={{ position: 'absolute', bottom: -210, right: -210, width: 500, height: 500, ['--dur' as string]: '55s', pointerEvents: 'none' }}>
+                <svg width="500" height="500" viewBox="0 0 500 500" fill="none">
+                    <circle cx="250" cy="250" r="248" stroke="rgba(230,244,239,0.04)" strokeWidth="0.8" strokeDasharray="2 16" />
+                    <circle cx="498" cy="250" r="3" fill="rgba(232,62,140,0.38)" />
+                </svg>
+            </div>
+            {/* Small square — top right */}
+            <div className="spin-ccw" style={{ position: 'absolute', top: 55, right: 70, width: 150, height: 150, ['--dur' as string]: '32s', pointerEvents: 'none' }}>
+                <svg width="150" height="150" viewBox="0 0 150 150" fill="none">
+                    <rect x="10" y="10" width="130" height="130" fill="rgba(232,62,140,0.04)" stroke="rgba(232,62,140,0.18)" strokeWidth="1" strokeDasharray="5 10" />
+                    <circle cx="10" cy="10" r="2.5" fill="rgba(232,62,140,0.55)" />
+                </svg>
+            </div>
+            {/* Triangle — bottom */}
+            <div className="spin-cw" style={{ position: 'absolute', top: 160, left: '18%', width: 72, height: 72, ['--dur' as string]: '21s', pointerEvents: 'none' }}>
+                <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+                    <polygon points="36,4 68,64 4,64" fill="rgba(239,68,68,0.05)" stroke="rgba(239,68,68,0.28)" strokeWidth="1.2" strokeLinejoin="round" />
+                    <circle cx="36" cy="4" r="2.5" fill="rgba(239,68,68,0.6)" />
+                </svg>
+            </div>
+        </>
     );
 }
 
@@ -224,7 +232,7 @@ export default function AuthPage() {
 
     return (
         <>
-            <InjectCSS css={EDGE_CSS} />
+            <InjectCSS css={EDGE_CSS + ORBIT_CSS} />
             <div style={{
                 height: '100vh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
@@ -234,82 +242,22 @@ export default function AuthPage() {
                 {/* Ambient top glow */}
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 50% 0%, rgba(232,62,140,0.05) 0%, transparent 100%)' }} />
 
-                {/* Falling stars */}
+                {/* Falling stars — 2 only for perf */}
                 {[
                     { startX: '88%', size: 4, dur: 5.5, delay: 0, tailLen: 22, drift: -340 },
                     { startX: '72%', size: 3, dur: 4.8, delay: 1.6, tailLen: 16, drift: -300 },
-                    { startX: '95%', size: 5, dur: 6.2, delay: 0.8, tailLen: 26, drift: -380 },
-                    { startX: '80%', size: 3, dur: 5.1, delay: 2.7, tailLen: 18, drift: -320 },
                 ].map((st, i) => (
                     <motion.div key={`fstar-${i}`}
-                        style={{ position: 'fixed', left: st.startX, top: 0, rotate: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none', zIndex: 0 }}
+                        style={{ position: 'fixed', left: st.startX, top: 0, rotate: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none', zIndex: 0, willChange: 'transform' }}
                         animate={{ y: ['-5vh', '110vh'], x: [0, st.drift] }}
                         transition={{ duration: st.dur, delay: st.delay, repeat: Infinity, ease: 'linear' }}>
                         <div style={{ width: 1.5, height: st.tailLen, background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.65))' }} />
-                        <div style={{ width: st.size, height: st.size, borderRadius: '50%', background: '#ffffff', boxShadow: [`0 0 ${st.size * 2}px ${st.size}px rgba(255,255,255,0.95)`, `0 0 ${st.size * 5}px ${st.size * 2}px rgba(180,210,255,0.55)`].join(', ') }} />
+                        <div style={{ width: st.size, height: st.size, borderRadius: '50%', background: '#ffffff', boxShadow: `0 0 ${st.size * 2}px ${st.size}px rgba(255,255,255,0.95)` }} />
                     </motion.div>
                 ))}
 
-                {/* Orbiters */}
-                <Orbiter size={580} top={-240} left={-240} duration={70} reverse>
-                    <svg width="580" height="580" viewBox="0 0 580 580" fill="none">
-                        <circle cx="290" cy="290" r="288" stroke="rgba(232,62,140,0.06)" strokeWidth="1" strokeDasharray="3 20" />
-                        <circle cx="290" cy="290" r="248" stroke="rgba(230,244,239,0.03)" strokeWidth="0.5" />
-                        <circle cx="290" cy="2" r="3.5" fill="rgba(232,62,140,0.5)" />
-                        <circle cx="578" cy="290" r="2.5" fill="rgba(230,244,239,0.12)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={500} bottom={-210} right={-210} duration={55}>
-                    <svg width="500" height="500" viewBox="0 0 500 500" fill="none">
-                        <circle cx="250" cy="250" r="248" stroke="rgba(230,244,239,0.04)" strokeWidth="0.8" strokeDasharray="2 16" />
-                        <circle cx="250" cy="250" r="210" stroke="rgba(232,62,140,0.04)" strokeWidth="0.5" />
-                        <circle cx="250" cy="2" r="2.5" fill="rgba(230,244,239,0.15)" />
-                        <circle cx="498" cy="250" r="3" fill="rgba(232,62,140,0.38)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={150} top={55} right={70} duration={32} reverse>
-                    <svg width="150" height="150" viewBox="0 0 150 150" fill="none">
-                        <polygon points="75,6 138,40 138,110 75,144 12,110 12,40" fill="none" stroke="rgba(232,62,140,0.11)" strokeWidth="1" strokeDasharray="3 9" />
-                        <circle cx="75" cy="6" r="2.5" fill="rgba(232,62,140,0.5)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={80} bottom={100} left={55} duration={20}>
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" fill="none" stroke="rgba(230,244,239,0.07)" strokeWidth="1" strokeDasharray="2 7" />
-                        <circle cx="40" cy="4" r="2" fill="rgba(230,244,239,0.15)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={64} top={90} left="28%" duration={19} reverse>
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                        <rect x="4" y="4" width="56" height="56" fill="rgba(232,62,140,0.05)" stroke="rgba(232,62,140,0.28)" strokeWidth="1.2" />
-                        <rect x="14" y="14" width="36" height="36" fill="none" stroke="rgba(232,62,140,0.12)" strokeWidth="0.8" strokeDasharray="3 5" />
-                        <circle cx="4" cy="4" r="2.5" fill="rgba(232,62,140,0.6)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={90} bottom={140} right="22%" duration={28}>
-                    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
-                        <rect x="4" y="4" width="82" height="82" fill="rgba(232,62,140,0.03)" stroke="rgba(232,62,140,0.18)" strokeWidth="1" strokeDasharray="4 8" />
-                        <circle cx="86" cy="4" r="2.5" fill="rgba(232,62,140,0.5)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={72} top={160} left="18%" duration={21}>
-                    <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-                        <polygon points="36,4 68,64 4,64" fill="rgba(239,68,68,0.05)" stroke="rgba(239,68,68,0.28)" strokeWidth="1.2" strokeLinejoin="round" />
-                        <circle cx="36" cy="4" r="2.5" fill="rgba(239,68,68,0.6)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={55} bottom={200} right="18%" duration={17} reverse>
-                    <svg width="55" height="55" viewBox="0 0 55 55" fill="none">
-                        <polygon points="27,4 52,50 2,50" fill="rgba(248,113,113,0.04)" stroke="rgba(248,113,113,0.24)" strokeWidth="1" strokeLinejoin="round" />
-                        <circle cx="2" cy="50" r="2" fill="rgba(248,113,113,0.45)" />
-                    </svg>
-                </Orbiter>
-                <Orbiter size={44} top={220} right={110} duration={24} reverse>
-                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-                        <polygon points="22,3 41,39 3,39" fill="rgba(252,165,165,0.03)" stroke="rgba(252,165,165,0.2)" strokeWidth="1" strokeDasharray="3 6" strokeLinejoin="round" />
-                        <circle cx="41" cy="39" r="2" fill="rgba(252,165,165,0.4)" />
-                    </svg>
-                </Orbiter>
+                {/* CSS Orbiters (GPU-accelerated) */}
+                <CSSOrbiters />
 
                 {/* Equal left spacer */}
                 <div style={{ flex: 1 }} />
