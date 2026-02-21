@@ -131,23 +131,25 @@ export default function Sidebar() {
                     );
                 })}
 
-                {/* Knowledge Graph — dynamic link */}
-                <Link href={graphHref}>
-                    <div
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:scale-[1.02]"
-                        style={{
-                            background: isGraphActive ? 'rgba(79,124,255,0.08)' : 'transparent',
-                            color: isGraphActive ? '#7B9FFF' : 'var(--text-secondary)',
-                            border: isGraphActive ? '1px solid rgba(79,124,255,0.18)' : '1px solid transparent',
-                        }}
-                    >
-                        <Network className="w-4 h-4 shrink-0" />
-                        {!collapsed && <span>Knowledge Graph</span>}
-                        {!collapsed && isGraphActive && (
-                            <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
-                        )}
-                    </div>
-                </Link>
+                {/* Knowledge Graph — only shown once a project is open */}
+                {lastProjectId && (
+                    <Link href={graphHref}>
+                        <div
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:scale-[1.02]"
+                            style={{
+                                background: isGraphActive ? 'rgba(79,124,255,0.08)' : 'transparent',
+                                color: isGraphActive ? '#7B9FFF' : 'var(--text-secondary)',
+                                border: isGraphActive ? '1px solid rgba(79,124,255,0.18)' : '1px solid transparent',
+                            }}
+                        >
+                            <Network className="w-4 h-4 shrink-0" />
+                            {!collapsed && <span>Knowledge Graph</span>}
+                            {!collapsed && isGraphActive && (
+                                <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
+                            )}
+                        </div>
+                    </Link>
+                )}
             </nav>
 
             {/* User section */}
