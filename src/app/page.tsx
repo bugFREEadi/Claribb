@@ -69,9 +69,9 @@ function HeroGrid() {
             <motion.div className="absolute inset-[-8%]" style={{ x: gx, y: gy }}>
                 <div style={{
                     position: 'absolute', inset: 0,
-                    backgroundImage: `linear-gradient(rgba(255,255,255,0.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.09) 1px,transparent 1px)`,
-                    backgroundSize: '72px 72px',
-                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%, black 65%, transparent 100%)',
+                    backgroundImage: `linear-gradient(rgba(255,255,255,0.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.12) 1px,transparent 1px)`,
+                    backgroundSize: '64px 64px',
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 42%, black 58%, transparent 100%)',
                 }} />
             </motion.div>
         </div>
@@ -122,11 +122,11 @@ function NeuralDiagram() {
             </defs>
             {edges.map(([a, b], i) => (
                 <motion.line key={`e${i}`} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y}
-                    stroke="rgba(255,255,255,0.07)" strokeWidth="1"
-                    animate={{ opacity: [0.04, 0.2, 0.04] }} transition={{ duration: 2.8 + i * 0.08, delay: i * 0.04, repeat: Infinity }} />
+                    stroke="rgba(255,255,255,0.035)" strokeWidth="1"
+                    animate={{ opacity: [0.02, 0.1, 0.02] }} transition={{ duration: 2.8 + i * 0.08, delay: i * 0.04, repeat: Infinity }} />
             ))}
             {edges.slice(0, 5).map(([a, b], i) => (
-                <motion.circle key={`p${i}`} r="2.5" fill="#ffffff" filter="url(#ndf)"
+                <motion.circle key={`p${i}`} r="3.5" fill="#E83E8C" filter="url(#ndf)"
                     animate={{ opacity: [0, 1, 0], cx: [nodes[a].x, nodes[b].x], cy: [nodes[a].y, nodes[b].y] }}
                     transition={{ duration: 1.8, delay: i * 0.6, repeat: Infinity, ease: 'linear' }} />
             ))}
@@ -141,11 +141,16 @@ function NeuralDiagram() {
     );
 }
 
-/* Dracula syntax palette */
+/* Dracula syntax palette — softened / desaturated */
 const SYN: Record<string, string> = {
-    k: '#BD93F9', m: '#8BE9FD', n: '#F8F8F2',
-    s: '#50FA7B', c: '#6272A4', f: '#FFB86C',
-    p: '#FF79C6', d: '#F8F8F2',
+    k: '#A78BD4', // keywords — muted violet (was #BD93F9)
+    m: '#72B8CC', // module names — muted teal-blue (was #8BE9FD)
+    n: '#C8C8C0', // identifiers — off-white (was #F8F8F2)
+    s: '#6BAF7E', // strings — muted sage green (was #50FA7B)
+    c: '#555E7A', // comments — dark slate (was #6272A4)
+    f: '#C49A5A', // function names — muted amber (was #FFB86C)
+    p: '#C47AA0', // properties — muted rose (was #FF79C6)
+    d: '#B8B8B2', // default / operators — soft gray-white
 };
 
 /* Per-language code definitions */
@@ -232,11 +237,11 @@ function CodePanel({ query }: { query: string }) {
                 {/* Live typewriter line (only Python + Node) */}
                 {lang !== 'curl' && (
                     <div className="mt-1">
-                        <span style={{ color: '#F8F8F2' }}>{liveCallStr}</span>
-                        <span style={{ color: '#50FA7B' }}>&#34;{query}</span>
-                        <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.52, repeat: Infinity }} style={{ color: '#BD93F9' }}>▊</motion.span>
-                        <span style={{ color: '#50FA7B' }}>&#34;</span>
-                        <span style={{ color: '#F8F8F2' }}>)</span>
+                        <span style={{ color: '#909090' }}>{liveCallStr}</span>
+                        <span style={{ color: '#6BAF7E' }}>&#34;{query}</span>
+                        <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.52, repeat: Infinity }} style={{ color: '#A78BD4' }}>▊</motion.span>
+                        <span style={{ color: '#6BAF7E' }}>&#34;</span>
+                        <span style={{ color: '#909090' }}>)</span>
                     </div>
                 )}
             </div>
@@ -291,7 +296,7 @@ export default function LandingPage() {
             <ScrollBar />
 
             {/* ═══ ANNOUNCEMENT BAR ════════════════ */}
-            <div className="flex items-center justify-center gap-2.5 py-3 text-[12.5px] font-medium"
+            <div className="flex items-center justify-center gap-2.5 py-1.5 text-[12px] font-medium"
                 style={{ background: '#CD3775', borderBottom: '1px solid rgba(0,0,0,0.2)' }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-white opacity-70" />
                 <span style={{ color: 'rgba(255,255,255,0.92)' }}>SPEEDRUN 2026 · Track 3 — Multi-Agent Research Intelligence</span>
@@ -341,7 +346,7 @@ export default function LandingPage() {
                             className="font-bold leading-[1.06] mb-5"
                             style={{ fontSize: 'clamp(34px,4.6vw,56px)', letterSpacing: '-0.025em' }}>
                             <span style={{
-                                background: 'linear-gradient(180deg, #888888 0%, #FFFFFF 55%)',
+                                background: 'linear-gradient(180deg, #3A3A3A 0%, #FFFFFF 55%)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
@@ -400,8 +405,8 @@ export default function LandingPage() {
                             {AGENTS.map((ag, i) => {
                                 const pos = [{ top: '8%', left: '3%' }, { top: '8%', right: '3%' }, { bottom: '10%', left: '3%' }, { bottom: '10%', right: '3%' }];
                                 return (
-                                    <div key={ag.id} className="absolute flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
-                                        style={{ ...pos[i], background: active === i ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.022)', border: `1px solid ${active === i ? C.borderM : C.border}`, color: active === i ? C.sec : C.faint, transition: 'all 0.3s ease' }}>
+                                    <div key={ag.id} className="absolute flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold"
+                                        style={{ ...pos[i], background: active === i ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${active === i ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.10)'}`, color: active === i ? '#FFFFFF' : '#8A8A8A', transition: 'all 0.3s ease' }}>
                                         {active === i && <motion.span className="w-1.5 h-1.5 rounded-full" style={{ background: C.pink }} animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.9, repeat: Infinity }} />}
                                         {ag.name}
                                     </div>
