@@ -228,8 +228,7 @@ export default function AuthPage() {
             <div style={{
                 height: '100vh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: '2.5rem', padding: '0',
+                display: 'flex', alignItems: 'center',
                 position: 'relative', overflow: 'hidden',
             }}>
                 {/* Ambient top glow */}
@@ -312,8 +311,11 @@ export default function AuthPage() {
                     </svg>
                 </Orbiter>
 
+                {/* Equal left spacer */}
+                <div style={{ flex: 1 }} />
+
                 {/* ── LEFT SIDEBAR ── */}
-                <div style={{ width: 560, flexShrink: 0, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
+                <div style={{ width: 460, flexShrink: 0, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
                     {/* Logo */}
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
@@ -366,10 +368,13 @@ export default function AuthPage() {
                     </div>
                 </div>
 
+                {/* Equal middle spacer */}
+                <div style={{ flex: 1 }} />
+
                 {/* ── AUTH CARD ── */}
                 <motion.div ref={cardRef}
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ position: 'relative', zIndex: 10, width: 460, flexShrink: 0, borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
+                    style={{ position: 'relative', zIndex: 10, width: 520, flexShrink: 0, borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
                     <BorderEdge cardRef={cardRef} />
 
                     {done ? (
@@ -462,6 +467,9 @@ export default function AuthPage() {
                         </>
                     )}
                 </motion.div>
+
+                {/* Equal right spacer */}
+                <div style={{ flex: 1 }} />
             </div>
         </>
     );
