@@ -73,7 +73,7 @@ export default function Sidebar() {
             }}
         >
             {/* Logo */}
-            <div className="flex items-center gap-3 px-4 py-5 border-b" style={{ borderColor: 'var(--border)' }}>
+            <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-3 px-4 py-5 border-b" style={{ borderColor: 'var(--border)', textDecoration: 'none' }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{
                     background: 'rgba(79,124,255,0.1)',
                     border: '1px solid rgba(79,124,255,0.25)',
@@ -91,7 +91,7 @@ export default function Sidebar() {
                         CLARIBB
                     </motion.span>
                 )}
-            </div>
+            </Link>
 
             {/* New Project button */}
             <div className="px-3 pt-4 pb-2">
