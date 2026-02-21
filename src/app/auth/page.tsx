@@ -37,24 +37,57 @@ function useTypewriter(phrases: string[], speed = 55) {
     return display;
 }
 
-// ── Floating geometric shape ────────────────────────────────────────
-function FloatingShape() {
+// ── Floating geometric shapes (3 of them) ───────────────────────────
+function FloatingShapes() {
     return (
-        <motion.div
-            className="absolute pointer-events-none"
-            style={{ top: '10%', right: '8%', width: 80, height: 80 }}
-            animate={{ rotate: 360, y: [0, -14, 0] }}
-            transition={{ rotate: { duration: 18, repeat: Infinity, ease: 'linear' }, y: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
-        >
-            <div style={{
-                width: '100%', height: '100%',
-                border: '1.5px solid rgba(232,62,140,0.35)',
-                borderRadius: 8,
-                background: 'rgba(232,62,140,0.05)',
-                transform: 'rotate(15deg)',
-                boxShadow: '0 0 24px rgba(232,62,140,0.1) inset',
-            }} />
-        </motion.div>
+        <>
+            {/* Large square — top right */}
+            <motion.div
+                className="absolute pointer-events-none"
+                style={{ top: '9%', right: '7%', width: 82, height: 82 }}
+                animate={{ rotate: 360, y: [0, -14, 0] }}
+                transition={{ rotate: { duration: 20, repeat: Infinity, ease: 'linear' }, y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' } }}
+            >
+                <div style={{
+                    width: '100%', height: '100%',
+                    border: '1.5px solid rgba(232,62,140,0.32)',
+                    borderRadius: 10,
+                    background: 'rgba(232,62,140,0.045)',
+                    boxShadow: '0 0 28px rgba(232,62,140,0.1) inset',
+                }} />
+            </motion.div>
+
+            {/* Small square — mid left */}
+            <motion.div
+                className="absolute pointer-events-none"
+                style={{ top: '38%', left: '3%', width: 38, height: 38 }}
+                animate={{ rotate: -360, y: [0, -10, 0] }}
+                transition={{ rotate: { duration: 14, repeat: Infinity, ease: 'linear' }, y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 } }}
+            >
+                <div style={{
+                    width: '100%', height: '100%',
+                    border: '1px solid rgba(232,62,140,0.2)',
+                    borderRadius: 5,
+                    background: 'rgba(232,62,140,0.03)',
+                }} />
+            </motion.div>
+
+            {/* Tiny diamond — bottom right area */}
+            <motion.div
+                className="absolute pointer-events-none"
+                style={{ bottom: '22%', right: '14%', width: 24, height: 24 }}
+                animate={{ rotate: 360, y: [0, -8, 0], opacity: [0.4, 0.9, 0.4] }}
+                transition={{ rotate: { duration: 9, repeat: Infinity, ease: 'linear' }, y: { duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 2.8, repeat: Infinity, ease: 'easeInOut' } }}
+            >
+                <div style={{
+                    width: '100%', height: '100%',
+                    border: '1px solid rgba(232,62,140,0.45)',
+                    borderRadius: 3,
+                    background: 'rgba(232,62,140,0.08)',
+                    transform: 'rotate(45deg)',
+                }} />
+            </motion.div>
+        </>
     );
 }
 
@@ -126,10 +159,10 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row relative" style={{ background: '#09090c' }}>
+        <div className="h-screen overflow-hidden flex flex-col lg:flex-row relative" style={{ background: '#09090c' }}>
 
             {/* ── LEFT: Brand panel ── */}
-            <div className="flex-1 flex flex-col relative overflow-hidden px-10 py-12 lg:px-16 lg:py-16">
+            <div className="flex-1 flex flex-col relative overflow-hidden px-10 py-8 lg:px-14 lg:py-8">
                 {/* Grid */}
                 <div className="absolute inset-0 pointer-events-none" style={{
                     backgroundImage: `linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px)`,
@@ -140,11 +173,11 @@ export default function AuthPage() {
                     background: 'radial-gradient(ellipse at bottom left, rgba(232,62,140,0.07) 0%, transparent 65%)',
                 }} />
 
-                {/* Floating geometric shape */}
-                <FloatingShape />
+                {/* Floating geometric shapes */}
+                <FloatingShapes />
 
                 {/* Logo */}
-                <div className="relative z-10 mb-16">
+                <div className="relative z-10 mb-7">
                     <Link href="/" className="flex items-center gap-2.5 w-fit">
                         <div className="w-2 h-2 rounded-full" style={{ background: '#E83E8C', boxShadow: '0 0 8px rgba(232,62,140,0.8)' }} />
                         <span className="text-sm font-bold tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.75)' }}>CLARIBB</span>
@@ -156,7 +189,7 @@ export default function AuthPage() {
                     <div>
                         <motion.h1
                             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-                            className="text-5xl lg:text-6xl font-bold leading-[1.1] mb-6"
+                            className="text-4xl lg:text-5xl font-bold leading-[1.1] mb-4"
                             style={{ color: 'rgba(255,255,255,0.92)' }}
                         >
                             Your research,<br />
@@ -165,27 +198,40 @@ export default function AuthPage() {
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}
-                            className="text-sm leading-relaxed max-w-sm"
+                            className="text-xs leading-relaxed max-w-sm"
                             style={{ color: 'rgba(255,255,255,0.35)' }}
                         >
                             CLARIBB builds a persistent model of your knowledge — deploying four specialized agents that think, search, challenge, and connect on your behalf.
                         </motion.p>
 
-                        {/* Testimonial */}
+                        {/* Agent live-feed card */}
                         <motion.div
                             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
-                            className="mt-10 p-6 rounded-2xl max-w-sm"
+                            className="mt-6 max-w-sm rounded-2xl overflow-hidden"
                             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
                         >
-                            <p className="text-sm italic leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                                &ldquo;CLARIBB found a connection between my Session 4 notes and a paper I uploaded in Session 12. I wouldn&apos;t have seen that in months of solo research.&rdquo;
-                            </p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white" style={{ background: 'linear-gradient(135deg, #E83E8C, #a855f7)' }}>A</div>
-                                <div>
-                                    <div className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>Dr. Arjun Mehta</div>
-                                    <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>AI Policy Researcher</div>
-                                </div>
+                            <div className="flex items-center gap-2 px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <motion.div className="w-1.5 h-1.5 rounded-full" style={{ background: '#E83E8C' }}
+                                    animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }} />
+                                <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>What CLARIBB does</span>
+                            </div>
+                            <div className="px-4 py-3 space-y-2.5">
+                                {[
+                                    { label: 'Recall', desc: 'Surfaces memories from past sessions', color: '#E83E8C', delay: 0 },
+                                    { label: 'Explorer', desc: 'Searches the web, expands context', color: '#a855f7', delay: 0.4 },
+                                    { label: 'Critique', desc: 'Identifies gaps, biases, blind spots', color: '#3b82f6', delay: 0.8 },
+                                    { label: 'Connector', desc: 'Links ideas across sessions', color: '#10b981', delay: 1.2 },
+                                ].map(a => (
+                                    <div key={a.label} className="flex items-start gap-2.5">
+                                        <motion.div className="w-1.5 h-1.5 rounded-full mt-1 shrink-0" style={{ background: a.color }}
+                                            animate={{ opacity: [1, 0.25, 1], scale: [1, 0.7, 1] }}
+                                            transition={{ duration: 2, repeat: Infinity, delay: a.delay }} />
+                                        <div>
+                                            <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.65)' }}>{a.label}</span>
+                                            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.28)' }}> — {a.desc}</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </motion.div>
                     </div>
@@ -193,12 +239,12 @@ export default function AuthPage() {
                     {/* Stats */}
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-                        className="flex items-center gap-10 mt-14"
+                        className="flex items-center gap-8 mt-6"
                     >
                         {[['247', '#E83E8C', 'Memories Indexed'], ['31', 'rgba(255,255,255,0.75)', 'Sessions Analyzed'], ['74', 'rgba(255,255,255,0.75)', 'Depth Score']].map(([val, color, label]) => (
                             <div key={label}>
-                                <div className="text-3xl font-bold" style={{ color }}>{val}</div>
-                                <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</div>
+                                <div className="text-2xl font-bold" style={{ color }}>{val}</div>
+                                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</div>
                             </div>
                         ))}
                     </motion.div>
@@ -283,33 +329,28 @@ export default function AuthPage() {
                         </button>
                     </form>
 
-                    {/* Tab toggle — below button like reference */}
-                    <div className="flex gap-3 mb-6">
-                        {(['login', 'signup'] as const).map(m => (
-                            <button key={m}
-                                onClick={() => { setMode(m); setError(''); }}
-                                className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                                style={{
-                                    background: mode === m ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
-                                    color: mode === m ? '#E83E8C' : 'rgba(255,255,255,0.3)',
-                                    border: `1px solid ${mode === m ? 'rgba(232,62,140,0.3)' : 'rgba(255,255,255,0.07)'}`,
-                                }}>
-                                {m === 'login' ? 'Sign In' : 'Sign Up'}
-                            </button>
-                        ))}
-                    </div>
+                    {/* Mode switch text */}
+                    <p className="text-center text-[11px] mt-5" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                        {mode === 'login' ? (
+                            <>Don&apos;t have an account?{' '}
+                                <button onClick={() => { setMode('signup'); setError(''); }}
+                                    className="font-semibold transition-colors hover:opacity-80"
+                                    style={{ color: '#E83E8C' }}>Sign up</button>
+                            </>
+                        ) : (
+                            <>Already have an account?{' '}
+                                <button onClick={() => { setMode('login'); setError(''); }}
+                                    className="font-semibold transition-colors hover:opacity-80"
+                                    style={{ color: '#E83E8C' }}>Sign in</button>
+                            </>
+                        )}
+                    </p>
 
-                    <div className="relative flex items-center gap-3 mb-4">
-                        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-                        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>or</span>
-                        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-                    </div>
-
-                    <p className="text-center text-[10px]" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                    <p className="text-center text-[10px] mt-3" style={{ color: 'rgba(255,255,255,0.15)' }}>
                         By continuing, you agree to our{' '}
-                        <span className="underline cursor-pointer" style={{ color: 'rgba(255,255,255,0.32)' }}>Terms of Service</span>
+                        <span className="underline cursor-pointer" style={{ color: 'rgba(255,255,255,0.28)' }}>Terms</span>
                         {' '}and{' '}
-                        <span className="underline cursor-pointer" style={{ color: 'rgba(255,255,255,0.32)' }}>Privacy Policy</span>.
+                        <span className="underline cursor-pointer" style={{ color: 'rgba(255,255,255,0.28)' }}>Privacy Policy</span>.
                     </p>
                 </motion.div>
             </div>
