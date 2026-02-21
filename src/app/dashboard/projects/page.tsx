@@ -29,8 +29,8 @@ export default function ProjectsPage() {
                     <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{projects.length} research project{projects.length !== 1 ? 's' : ''}</p>
                 </div>
                 <button onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 0 20px rgba(99,102,241,0.35)' }}>
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
+                    style={{ background: '#E83E8C', boxShadow: '0 0 18px rgba(232,62,140,0.25)' }}>
                     <Plus className="w-4 h-4" />
                     New Project
                 </button>
@@ -46,8 +46,8 @@ export default function ProjectsPage() {
                     <p className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>No projects yet</p>
                     <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Create your first research project to get started.</p>
                     <button onClick={() => setShowCreate(true)}
-                        className="px-6 py-3 rounded-xl text-sm font-semibold text-white"
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}>
+                        className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
+                        style={{ background: '#E83E8C' }}>
                         Create Project
                     </button>
                 </div>

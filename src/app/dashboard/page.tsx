@@ -127,13 +127,11 @@ export default function DashboardPage() {
                         <button
                             onClick={() => generateDigest(projects[0].id)}
                             disabled={digestLoading}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                             style={{
-                                background: digestLoading
-                                    ? 'rgba(77,216,204,0.05)'
-                                    : 'rgba(77,216,204,0.08)',
-                                border: '1px solid rgba(77,216,204,0.2)',
-                                color: '#7ae8e0',
+                                background: 'rgba(232,62,140,0.08)',
+                                border: '1px solid rgba(232,62,140,0.2)',
+                                color: '#E83E8C',
                             }}
                         >
                             {digestLoading ? (
@@ -145,11 +143,11 @@ export default function DashboardPage() {
                     )}
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-105"
                         style={{
-                            background: 'rgba(77,216,204,0.1)',
-                            border: '1px solid rgba(77,216,204,0.28)',
-                            color: '#4dd8cc',
+                            background: '#E83E8C',
+                            color: '#fff',
+                            boxShadow: '0 0 18px rgba(232,62,140,0.3)',
                         }}
                     >
                         <Plus className="w-4 h-4" />
@@ -166,21 +164,19 @@ export default function DashboardPage() {
                 className="grid grid-cols-4 gap-4 mb-8"
             >
                 {[
-                    { label: 'Total Memories', value: totalMemories, icon: Database, color: '#4dd8cc' },
-                    { label: 'Research Sessions', value: totalSessions, icon: BookOpen, color: '#7ae8e0' },
-                    { label: 'Active Projects', value: projects.length, icon: Layers, color: '#d4a853' },
-                    { label: 'Avg Depth Score', value: `${avgDepth}/100`, icon: TrendingUp, color: '#8b75c0' },
+                    { label: 'Total Memories', value: totalMemories, icon: Database },
+                    { label: 'Research Sessions', value: totalSessions, icon: BookOpen },
+                    { label: 'Active Projects', value: projects.length, icon: Layers },
+                    { label: 'Avg Depth Score', value: `${avgDepth}/100`, icon: TrendingUp },
                 ].map(stat => {
                     const Icon = stat.icon;
                     return (
-                        <div key={stat.label} className="p-5 rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${stat.color}20` }}>
-                                    <Icon className="w-4 h-4" style={{ color: stat.color }} />
-                                </div>
-                                <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{stat.label}</span>
+                        <div key={stat.label} style={{ padding: '1.25rem 1.5rem', borderRadius: 12, background: '#111111', border: '1px solid #1e1e1e' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                                <Icon size={13} style={{ color: '#555' }} />
+                                <span style={{ fontSize: '0.7rem', color: '#555', fontWeight: 500 }}>{stat.label}</span>
                             </div>
-                            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stat.value}</div>
+                            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#e8e8e8' }}>{stat.value}</div>
                         </div>
                     );
                 })}
@@ -219,20 +215,20 @@ export default function DashboardPage() {
                         className="mb-8 rounded-2xl overflow-hidden"
                         style={{
                             background: 'var(--bg-card)',
-                            border: '1px solid rgba(168,85,247,0.25)',
-                            boxShadow: '0 0 40px rgba(168,85,247,0.08)',
+                            border: '1px solid rgba(232,62,140,0.18)',
+                            boxShadow: '0 0 32px rgba(232,62,140,0.05)',
                         }}
                     >
                         {/* Digest header */}
                         <div className="px-6 py-4 flex items-center justify-between"
                             style={{
-                                background: 'linear-gradient(90deg, rgba(168,85,247,0.08), rgba(99,102,241,0.06))',
-                                borderBottom: '1px solid rgba(168,85,247,0.15)',
+                                background: 'rgba(232,62,140,0.04)',
+                                borderBottom: '1px solid rgba(232,62,140,0.12)',
                             }}>
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                                    style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                                    <Zap className="w-4 h-4" style={{ color: '#a855f7' }} />
+                                    style={{ background: 'rgba(232,62,140,0.1)', border: '1px solid rgba(232,62,140,0.2)' }}>
+                                    <Zap className="w-4 h-4" style={{ color: '#E83E8C' }} />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
@@ -241,7 +237,7 @@ export default function DashboardPage() {
                                         </h3>
                                         {digestGenerated && (
                                             <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                                                style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                                style={{ background: 'rgba(232,62,140,0.1)', color: '#E83E8C', border: '1px solid rgba(232,62,140,0.2)' }}>
                                                 <CheckCircle2 className="w-2.5 h-2.5" />
                                                 Just generated
                                             </span>
@@ -260,7 +256,7 @@ export default function DashboardPage() {
                                     onClick={() => projects[0] && generateDigest(projects[0].id)}
                                     disabled={digestLoading}
                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:scale-105"
-                                    style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)', color: '#a855f7' }}>
+                                    style={{ background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.18)', color: '#E83E8C' }}>
                                     <RefreshCw className="w-3 h-3" />
                                     Regenerate
                                 </button>
@@ -275,27 +271,27 @@ export default function DashboardPage() {
                             {digest.connections_found && digest.connections_found.length > 0 && (
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
-                                        <Link2 className="w-4 h-4" style={{ color: '#06b6d4' }} />
+                                        <Link2 className="w-4 h-4" style={{ color: '#666' }} />
                                         <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                                             Connections Found
                                         </h4>
                                         <span className="text-xs px-1.5 py-0.5 rounded-full font-bold"
-                                            style={{ background: 'rgba(6,182,212,0.12)', color: '#06b6d4' }}>
+                                            style={{ background: 'rgba(232,62,140,0.1)', color: '#E83E8C' }}>
                                             {digest.connections_found.length}
                                         </span>
                                     </div>
                                     <div className="space-y-2.5">
                                         {digest.connections_found.slice(0, 3).map((conn, i) => (
                                             <div key={i} className="p-3 rounded-xl"
-                                                style={{ background: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.12)' }}>
+                                                style={{ background: 'rgba(232,62,140,0.03)', border: '1px solid rgba(232,62,140,0.1)' }}>
                                                 <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                                                     <span className="text-xs font-semibold px-1.5 py-0.5 rounded"
-                                                        style={{ background: 'rgba(6,182,212,0.12)', color: '#06b6d4' }}>
+                                                        style={{ background: 'rgba(232,62,140,0.1)', color: '#E83E8C' }}>
                                                         {conn.concept_a}
                                                     </span>
                                                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>↔</span>
                                                     <span className="text-xs font-semibold px-1.5 py-0.5 rounded"
-                                                        style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+                                                        style={{ background: 'rgba(255,255,255,0.05)', color: '#aaa' }}>
                                                         {conn.concept_b}
                                                     </span>
                                                 </div>
@@ -306,7 +302,7 @@ export default function DashboardPage() {
                                                     <div className="flex items-center gap-2 mt-1.5">
                                                         <div className="flex-1 h-1 rounded-full" style={{ background: 'var(--border)' }}>
                                                             <div className="h-full rounded-full"
-                                                                style={{ width: `${conn.similarity * 100}%`, background: 'linear-gradient(90deg, #06b6d4, #6366f1)' }} />
+                                                                style={{ width: `${conn.similarity * 100}%`, background: '#E83E8C' }} />
                                                         </div>
                                                         <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                                             {(conn.similarity * 100).toFixed(0)}%
@@ -379,9 +375,9 @@ export default function DashboardPage() {
                                     onClick={() => router.push(`/dashboard/workspace/${projects[0].id}`)}
                                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01]"
                                     style={{
-                                        background: 'rgba(168,85,247,0.08)',
-                                        border: '1px solid rgba(168,85,247,0.2)',
-                                        color: '#a855f7',
+                                        background: 'rgba(232,62,140,0.08)',
+                                        border: '1px solid rgba(232,62,140,0.18)',
+                                        color: '#E83E8C',
                                     }}
                                 >
                                     <Brain className="w-4 h-4" />
@@ -394,17 +390,7 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* Projects Grid */}
-            <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    Your Projects
-                </h2>
-                {projects.length > 0 && (
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                        {projects.length} project{projects.length !== 1 ? 's' : ''}
-                    </span>
-                )}
-            </div>
+
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -419,10 +405,10 @@ export default function DashboardPage() {
                     className="text-center py-24"
                 >
                     <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6" style={{
-                        background: 'rgba(99,102,241,0.1)',
-                        border: '1px solid rgba(99,102,241,0.2)',
+                        background: 'rgba(232,62,140,0.07)',
+                        border: '1px solid rgba(232,62,140,0.18)',
                     }}>
-                        <Brain className="w-10 h-10" style={{ color: 'var(--accent)' }} />
+                        <Brain className="w-10 h-10" style={{ color: '#E83E8C' }} />
                     </div>
                     <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                         Create your first research project
@@ -434,7 +420,7 @@ export default function DashboardPage() {
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-                            style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}
+                            style={{ background: '#E83E8C', boxShadow: '0 0 18px rgba(232,62,140,0.3)' }}
                         >
                             <Plus className="w-4 h-4" />
                             Create Project
@@ -469,9 +455,9 @@ export default function DashboardPage() {
                             }}
                             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
                             style={{
-                                background: 'rgba(6,182,212,0.1)',
-                                border: '1px solid rgba(6,182,212,0.3)',
-                                color: '#06b6d4',
+                                background: 'rgba(232,62,140,0.06)',
+                                border: '1px solid rgba(232,62,140,0.2)',
+                                color: '#E83E8C',
                             }}
                         >
                             {seeding ? (
