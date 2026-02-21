@@ -1,3 +1,4 @@
+'use client';
 /**
  * SAGE Landing Page — entry point
  *
