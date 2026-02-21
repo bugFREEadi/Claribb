@@ -561,7 +561,8 @@ export default function WorkspacePage() {
     const [session, setSession] = useState<Session | null>(null);
     const [sessionHistory, setSessionHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
     const [critiqueMode, setCritiqueMode] = useState(false);
-    const [sidePanel, setSidePanel] = useState<'memory' | 'noticed' | 'steelman' | 'serendipity' | 'evolution' | 'trajectory' | null>('noticed');
+    const [sidePanel, setSidePanel] = useState<'memory' | 'noticed' | 'steelman' | 'serendipity' | 'evolution' | 'trajectory' | null>(null);
+    const [showSessionSidebar, setShowSessionSidebar] = useState(false);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [projectName, setProjectName] = useState('Research Workspace');
     const [endingSession, setEndingSession] = useState(false);
@@ -986,116 +987,109 @@ export default function WorkspacePage() {
     ];
 
     return (
-        <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-            {/* ── LEFT: Session Sidebar ── */}
-            <div className="w-48 shrink-0 border-r flex flex-col py-3 px-2" style={{
-                borderColor: 'rgba(255,255,255,0.05)',
-                background: 'rgba(8,8,10,0.95)',
-            }}>
-                <button onClick={() => router.push('/dashboard')}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium mb-4 transition-all hover:bg-white/5"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    <ChevronLeft className="w-3.5 h-3.5" /> Back
-                </button>
-
-                <div className="flex items-center gap-2 px-3 mb-3">
-                    <BookOpen className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.25)' }} />
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.25)' }}>Sessions</span>
-                </div>
-
-                <div className="flex-1 overflow-y-auto space-y-1">
-                    {session && (
-                        <div className="px-3 py-2 rounded-xl" style={{
-                            background: 'linear-gradient(135deg, rgba(232,62,140,0.08), rgba(167,139,212,0.05))',
-                            border: '1px solid rgba(232,62,140,0.2)',
-                        }}>
-                            <div className="text-[11px] font-medium mb-0.5" style={{ color: '#E83E8C' }}>Current Session</div>
-                            <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{messages.filter(m => m.role === 'user').length} messages</div>
-                        </div>
-                    )}
-                    {sessions.filter(s => s.id !== session?.id).slice(0, 12).map(s => (
-                        <div key={s.id} className="px-3 py-2 rounded-xl cursor-pointer transition-all hover:bg-white/[0.04] group">
-                            <div className="text-[11px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{s.title || 'Research Session'}</div>
-                            <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                                {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Research Depth */}
-                <div className="mx-1 mb-2 p-3 rounded-xl" style={{
-                    background: 'rgba(167,139,212,0.06)',
-                    border: '1px solid rgba(167,139,212,0.15)',
+        <div className="flex h-screen overflow-hidden" style={{ background: '#08080a' }}>
+            {/* ── LEFT: Session Sidebar — toggle hidden by default ── */}
+            {showSessionSidebar && (
+                <div className="w-44 shrink-0 border-r flex flex-col py-3 px-2" style={{
+                    borderColor: 'rgba(255,255,255,0.05)',
+                    background: 'rgba(6,6,8,0.98)',
                 }}>
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                            <TrendingUp className="w-3 h-3" style={{ color: '#A78BD4' }} />
-                            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Depth</span>
-                        </div>
-                        <motion.span
-                            key={depthScore}
-                            initial={{ scale: 1.4, color: '#E83E8C' }}
-                            animate={{ scale: 1, color: '#A78BD4' }}
-                            transition={{ duration: 0.4 }}
-                            className="text-base font-black"
-                            style={{ fontVariantNumeric: 'tabular-nums' }}
-                        >
-                            {depthScore}
-                        </motion.span>
-                    </div>
-                    <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <motion.div
-                            className="h-full rounded-full"
-                            style={{ background: 'linear-gradient(90deg, #E83E8C, #A78BD4)' }}
-                            animate={{ width: `${depthScore}%` }}
-                            transition={{ duration: 0.6, ease: 'easeOut' }}
-                        />
-                    </div>
-                    <div className="flex justify-between mt-1.5 text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                        <span>{sessions.length} sessions</span>
-                        <span>{messages.filter(m => m.role === 'user').length} today</span>
-                    </div>
-                </div>
+                    <button onClick={() => setShowSessionSidebar(false)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium mb-4 transition-all hover:bg-white/5"
+                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        <ChevronLeft className="w-3.5 h-3.5" /> Close
+                    </button>
 
-                <button
-                    onClick={handleEndSession}
-                    disabled={endingSession || sessionHistory.length === 0}
-                    className="mt-1 mx-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    style={{
-                        background: 'rgba(232,62,140,0.08)',
-                        border: '1px solid rgba(232,62,140,0.2)',
-                        color: '#E83E8C',
-                    }}
-                >
-                    {endingSession ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <StopCircle className="w-3.5 h-3.5" />}
-                    End & Summarize
-                </button>
-            </div>
+                    <div className="flex items-center gap-2 px-3 mb-3">
+                        <BookOpen className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>Sessions</span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-0.5">
+                        {session && (
+                            <div className="px-3 py-2 rounded-xl" style={{
+                                background: 'linear-gradient(135deg, rgba(232,62,140,0.08), rgba(167,139,212,0.05))',
+                                border: '1px solid rgba(232,62,140,0.2)',
+                            }}>
+                                <div className="text-[11px] font-medium" style={{ color: '#E83E8C' }}>Current Session</div>
+                                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{messages.filter(m => m.role === 'user').length} messages</div>
+                            </div>
+                        )}
+                        {sessions.filter(s => s.id !== session?.id).slice(0, 15).map(s => (
+                            <div key={s.id} className="px-3 py-2 rounded-xl cursor-pointer transition-all hover:bg-white/[0.04]">
+                                <div className="text-[11px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.45)' }}>{s.title || 'Session'}</div>
+                                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                                    {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mx-1 mb-2 p-3 rounded-xl" style={{ background: 'rgba(167,139,212,0.05)', border: '1px solid rgba(167,139,212,0.12)' }}>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>Depth</span>
+                            <motion.span key={depthScore} initial={{ scale: 1.4, color: '#E83E8C' }} animate={{ scale: 1, color: '#A78BD4' }} transition={{ duration: 0.4 }} className="text-sm font-black" style={{ fontVariantNumeric: 'tabular-nums' }}>{depthScore}</motion.span>
+                        </div>
+                        <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                            <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #E83E8C, #A78BD4)' }} animate={{ width: `${depthScore}%` }} transition={{ duration: 0.6 }} />
+                        </div>
+                    </div>
+
+                    <button onClick={handleEndSession} disabled={endingSession || sessionHistory.length === 0}
+                        className="mx-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all disabled:opacity-30"
+                        style={{ background: 'rgba(232,62,140,0.07)', border: '1px solid rgba(232,62,140,0.18)', color: '#E83E8C' }}>
+                        {endingSession ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <StopCircle className="w-3.5 h-3.5" />}
+                        End & Summarize
+                    </button>
+                </div>
+            )}
 
             {/* ── CENTER: Chat ── */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* ── HEADER — single clean row ── */}
                 <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{
-                    borderColor: 'rgba(255,255,255,0.06)',
-                    background: 'rgba(0,0,0,0.2)',
+                    borderColor: 'rgba(255,255,255,0.05)',
+                    background: 'rgba(6,6,8,0.9)',
                     backdropFilter: 'blur(12px)',
                 }}>
-                    {/* Left — project identity */}
+                    {/* Left — back + project name */}
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{
-                            background: streaming
-                                ? 'linear-gradient(135deg, #E83E8C, #A78BD4)'
-                                : 'linear-gradient(135deg, rgba(232,62,140,0.3), rgba(167,139,212,0.2))',
-                            border: '1px solid rgba(232,62,140,0.3)',
-                            boxShadow: streaming ? '0 0 20px rgba(232,62,140,0.5)' : 'none',
-                            transition: 'all 0.3s',
-                        }}>
-                            <Brain className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{projectName}</h1>
-                            <AgentPipeline active={streaming} activeIndex={agentIndex} />
+                        <button onClick={() => router.push('/dashboard')}
+                            className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
+                            style={{ color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
+                            title="Back to dashboard">
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setShowSessionSidebar(s => !s)}
+                            className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
+                            style={{ color: showSessionSidebar ? '#A78BD4' : 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
+                            title="Session history">
+                            <BookOpen className="w-3.5 h-3.5" />
+                        </button>
+                        <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{
+                                background: streaming
+                                    ? 'linear-gradient(135deg, #E83E8C, #A78BD4)'
+                                    : 'linear-gradient(135deg, rgba(232,62,140,0.25), rgba(167,139,212,0.15))',
+                                boxShadow: streaming ? '0 0 16px rgba(232,62,140,0.5)' : 'none',
+                                transition: 'all 0.4s',
+                            }}>
+                                <Brain className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <h1 className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{projectName}</h1>
+                            {streaming && (
+                                <div className="flex items-center gap-1">
+                                    {['Recall', 'Explorer', 'Critique', 'Connector'].map((a, i) => (
+                                        <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full" style={{
+                                            background: i === agentIndex ? 'rgba(232,62,140,0.2)' : 'rgba(255,255,255,0.04)',
+                                            color: i === agentIndex ? '#E83E8C' : 'rgba(255,255,255,0.25)',
+                                            border: `1px solid ${i === agentIndex ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.06)'}`,
+                                            transition: 'all 0.3s',
+                                        }}>{a}</span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -1222,28 +1216,25 @@ export default function WorkspacePage() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex-1 overflow-y-auto px-8 py-8" style={{ background: '#09090b' }}>
                     {messages.length === 0 && (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16">
-                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{
-                                background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(6,182,212,0.1))',
-                                border: '1px solid rgba(99,102,241,0.25)',
-                                boxShadow: '0 0 30px rgba(99,102,241,0.15)',
+                        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center justify-center h-full text-center px-6">
+                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{
+                                background: 'linear-gradient(135deg, rgba(232,62,140,0.15), rgba(167,139,212,0.1))',
+                                border: '1px solid rgba(232,62,140,0.2)',
+                                boxShadow: '0 0 40px rgba(232,62,140,0.1)',
                             }}>
-                                <Sparkles className="w-8 h-8" style={{ color: '#a5b4fc' }} />
+                                <Brain className="w-7 h-7" style={{ color: '#E83E8C' }} />
                             </div>
-                            <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Start your research session</h2>
-                            <p className="text-sm mb-2 max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                                Ask anything. CLARIBB recalls memories, fills gaps with web research, challenges assumptions, and surfaces hidden connections.
+                            <h2 className="text-xl font-bold mb-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Start your research</h2>
+                            <p className="text-sm max-w-xs mx-auto mb-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                Ask anything. CLARIBB remembers across sessions and surfaces hidden connections.
                             </p>
-                            <p className="text-xs mb-8" style={{ color: 'var(--text-muted)' }}>
-                                💡 Load demo memories in the Memory Bank → then ask about AI alignment.
-                            </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto text-left">
+                            <div className="flex flex-col gap-2 w-full max-w-sm">
                                 {STARTER_PROMPTS.map(prompt => (
                                     <button key={prompt} onClick={() => { setInput(prompt); textareaRef.current?.focus(); }}
-                                        className="p-3 rounded-xl text-left text-xs transition-all hover:scale-[1.02]"
-                                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                                        className="px-4 py-3 rounded-xl text-left text-sm transition-all hover:scale-[1.01]"
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>
                                         &ldquo;{prompt}&rdquo;
                                     </button>
                                 ))}
