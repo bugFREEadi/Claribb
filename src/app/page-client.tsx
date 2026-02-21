@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { Brain, ArrowRight, Network, Shield, Search, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
+import { Brain, ArrowRight, Network, Shield, Search, Send, X, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
 
 /* ── SSR-safe mount guard ───────────────────
    Prevents hydration mismatch for browser-only components.
@@ -143,21 +143,39 @@ function NeuralDiagram() {
                     stroke="rgba(255,255,255,0.035)" strokeWidth="1"
                     animate={{ opacity: [0.02, 0.1, 0.02] }} transition={{ duration: 2.8 + i * 0.08, delay: i * 0.04, repeat: Infinity }} />
             ))}
-            {edges.slice(0, 8).map(([a, b], i) => {
-                const dur = `${1.4}s`;
-                const begin = `${(i * 0.42).toFixed(2)}s`;
-                const kTimes = '0;0.06;0.94;1';
+            {/* Particles — each travels its full path to node 12 (the big pink ball) */}
+            {[
+                { pts: [nodes[0], nodes[3], nodes[7], nodes[10], nodes[12]], delay: 0 },
+                { pts: [nodes[1], nodes[4], nodes[8], nodes[11], nodes[12]], delay: 0.45 },
+                { pts: [nodes[2], nodes[5], nodes[9], nodes[11], nodes[12]], delay: 0.9 },
+                { pts: [nodes[0], nodes[4], nodes[8], nodes[10], nodes[12]], delay: 1.35 },
+                { pts: [nodes[2], nodes[6], nodes[9], nodes[11], nodes[12]], delay: 1.8 },
+                { pts: [nodes[1], nodes[3], nodes[7], nodes[11], nodes[12]], delay: 2.25 },
+                // second wave — slightly different paths
+                { pts: [nodes[0], nodes[3], nodes[8], nodes[10], nodes[12]], delay: 0.22 },
+                { pts: [nodes[2], nodes[4], nodes[7], nodes[11], nodes[12]], delay: 0.67 },
+                { pts: [nodes[1], nodes[5], nodes[8], nodes[10], nodes[12]], delay: 1.12 },
+                { pts: [nodes[0], nodes[4], nodes[9], nodes[11], nodes[12]], delay: 1.57 },
+                { pts: [nodes[2], nodes[5], nodes[8], nodes[11], nodes[12]], delay: 2.02 },
+                { pts: [nodes[1], nodes[4], nodes[7], nodes[10], nodes[12]], delay: 2.47 },
+            ].map(({ pts, delay }, pi) => {
+                const seg = pts.length - 1;
+                const dur = `${seg * 1.4}s`;
+                const begin = `${delay.toFixed(2)}s`;
+                // Build semicolon-joined keyframe values at equal intervals
+                const cxVals = pts.map(p => p.x).join(';');
+                const cyVals = pts.map(p => p.y).join(';');
+                // opacity: 0 → 1 (after first 5%) → 1 (until last 8%) → 0
+                const nPts = pts.length;
+                const opVals = pts.map((_, i) => i === 0 ? 0 : i === 1 ? 1 : i === nPts - 1 ? 0 : 1).join(';');
                 return (
-                    <circle key={`p${i}`} r="3" fill="#E83E8C" filter="url(#ndf)">
+                    <circle key={`p${pi}`} r="2.5" fill="#E83E8C" filter="url(#ndf)">
                         <animate attributeName="cx" calcMode="linear"
-                            values={`${nodes[a].x};${nodes[a].x};${nodes[b].x};${nodes[b].x}`}
-                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                            values={cxVals} dur={dur} begin={begin} repeatCount="indefinite" />
                         <animate attributeName="cy" calcMode="linear"
-                            values={`${nodes[a].y};${nodes[a].y};${nodes[b].y};${nodes[b].y}`}
-                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                            values={cyVals} dur={dur} begin={begin} repeatCount="indefinite" />
                         <animate attributeName="opacity" calcMode="linear"
-                            values="0;1;1;0"
-                            keyTimes={kTimes} dur={dur} begin={begin} repeatCount="indefinite" />
+                            values={opVals} dur={dur} begin={begin} repeatCount="indefinite" />
                     </circle>
                 );
             })}
@@ -253,6 +271,118 @@ function AgentSpreadCards() {
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+/* ── FAQ Section ──────────────────────────── */
+const FAQ_ITEMS = [
+    {
+        q: 'How does CLARIBB remember across sessions?',
+        a: 'Every note, query, and response is embedded via pgvector and stored in your persistent memory graph. When you return weeks later, CLARIBB instantly surfaces the most relevant context — no manual tagging, no re-explaining yourself.',
+        tags: ['pgvector', 'semantic memory', 'persistent context', 'embeddings'],
+    },
+    {
+        q: 'What are the 4 agents and what do they each do?',
+        a: 'Recall searches your memory graph for relevant past context. Explorer crawls live web sources to fill knowledge gaps. Critique acts as devil\'s advocate — surfacing counterarguments and weak assumptions. Connector finds non-obvious links between concepts across your entire research history.',
+        tags: ['Recall', 'Explorer', 'Critique', 'Connector', 'multi-agent'],
+    },
+    {
+        q: 'Which AI models power CLARIBB?',
+        a: 'CLARIBB is model-agnostic. It currently runs on Groq (for low-latency inference), with support for OpenAI and Cohere. The memory and orchestration layer is fully independent of the underlying LLM.',
+        tags: ['Groq', 'OpenAI', 'Cohere', 'model-agnostic'],
+    },
+    {
+        q: 'How is this different from ChatGPT or Perplexity?',
+        a: 'ChatGPT resets after every conversation. Perplexity searches the web but forgets you exist. CLARIBB builds a compounding knowledge model from your research history — every session makes the system smarter, not just the output.',
+        tags: ['persistent memory', 'knowledge compounding', 'differentiator'],
+    },
+    {
+        q: 'Is my research data private and secure?',
+        a: 'Your memory graph and research history are stored privately per user account. We do not train on your data or share it with third parties. Enterprise plans include dedicated isolated storage.',
+        tags: ['privacy', 'data security', 'enterprise', 'isolation'],
+    },
+    {
+        q: 'Can I use CLARIBB for team or collaborative research?',
+        a: 'Currently CLARIBB is optimised for individual researchers with their own persistent memory graph. Team workspaces with shared knowledge graphs are on the roadmap for Q3 2026.',
+        tags: ['individual', 'team', 'roadmap', 'collaboration'],
+    },
+];
+
+function FAQSection() {
+    const [open, setOpen] = useState<number | null>(0);
+    return (
+        <section className="relative py-28 overflow-hidden" style={{ background: C.black }}>
+            <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+                {/* Big heading + items layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-16">
+                    {/* Left — heading */}
+                    <FadeUp>
+                        <div className="lg:sticky" style={{ top: 120 }}>
+                            <Eyebrow>FAQ</Eyebrow>
+                            <h2 style={{ fontSize: 'clamp(52px,7vw,84px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 12 }}>
+                                FAQ
+                            </h2>
+                            <p style={{ fontSize: 14, color: C.muted, marginTop: 16, lineHeight: 1.7, maxWidth: 220 }}>
+                                Everything you need to know about CLARIBB.
+                            </p>
+                        </div>
+                    </FadeUp>
+                    {/* Right — accordion */}
+                    <div>
+                        {FAQ_ITEMS.map((item, i) => {
+                            const isOpen = open === i;
+                            return (
+                                <FadeUp key={i} delay={i * 0.04}>
+                                    <div style={{ borderBottom: `1px solid ${C.border}` }}>
+                                        <button
+                                            className="w-full flex items-center justify-between text-left py-6 gap-6 group"
+                                            onClick={() => setOpen(isOpen ? null : i)}
+                                        >
+                                            <div className="flex items-center gap-5">
+                                                {/* Number */}
+                                                <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#A78BD4', letterSpacing: '0.04em', flexShrink: 0 }}>
+                                                    ({String(i + 1).padStart(3, '0')})
+                                                </span>
+                                                {/* Question */}
+                                                <span style={{ fontSize: 17, fontWeight: 500, color: isOpen ? C.text : '#A0A0A0', letterSpacing: '-0.015em', transition: 'color 0.25s' }}>
+                                                    {item.q}
+                                                </span>
+                                            </div>
+                                            {/* Toggle icon */}
+                                            <span style={{ color: isOpen ? '#A78BD4' : '#52525B', fontSize: 20, flexShrink: 0, transition: 'color 0.25s' }}>
+                                                {isOpen ? '−' : '+'}
+                                            </span>
+                                        </button>
+                                        {/* Answer */}
+                                        <AnimatePresence initial={false}>
+                                            {isOpen && (
+                                                <motion.div
+                                                    key="ans"
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                                                    style={{ overflow: 'hidden' }}
+                                                >
+                                                    <div style={{ paddingBottom: 24, paddingLeft: 68 }}>
+                                                        <p style={{ fontSize: 14, lineHeight: 1.78, color: C.sec, marginBottom: 16 }}>{item.a}</p>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                            {item.tags.map(t => (
+                                                                <span key={t} style={{ fontSize: 11, padding: '2px 10px', borderRadius: 999, background: 'rgba(167,139,212,0.07)', color: '#A78BD4', border: '1px solid rgba(167,139,212,0.18)' }}>{t}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </FadeUp>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }
 
@@ -353,21 +483,21 @@ const SYN: Record<string, string> = {
 /* Per-language code definitions */
 const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     python: [
-        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'clarrib' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'CLARRIB' }],
+        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'clarrib' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'CLARIBB' }],
         [],
         [{ t: 'c', v: '# research with compounding memory' }],
         [],
-        [{ t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'f', v: 'CLARRIB' }, { t: 'd', v: '(' }],
+        [{ t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'f', v: 'CLARIBB' }, { t: 'd', v: '(' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: 'memory' }, { t: 'd', v: '=' }, { t: 's', v: '"persistent"' }, { t: 'd', v: ',' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: 'agents' }, { t: 'd', v: '=' }, { t: 's', v: '"all"' }],
         [{ t: 'd', v: ')' }],
     ],
     node: [
-        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'CLARRIB' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@clarrib/client'" }],
+        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'CLARIBB' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@clarrib/client'" }],
         [],
         [{ t: 'c', v: '// research with compounding memory' }],
         [],
-        [{ t: 'k', v: 'const ' }, { t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'k', v: 'new ' }, { t: 'f', v: 'CLARRIB' }, { t: 'd', v: '({' }],
+        [{ t: 'k', v: 'const ' }, { t: 'n', v: 'client' }, { t: 'd', v: ' = ' }, { t: 'k', v: 'new ' }, { t: 'f', v: 'CLARIBB' }, { t: 'd', v: '({' }],
         [{ t: 'd', v: '  ' }, { t: 'p', v: 'memory' }, { t: 'd', v: ': ' }, { t: 's', v: "'persistent'" }, { t: 'd', v: ',' }],
         [{ t: 'd', v: '  ' }, { t: 'p', v: 'agents' }, { t: 'd', v: ': ' }, { t: 's', v: "'all'" }],
         [{ t: 'd', v: '})' }],
@@ -375,7 +505,7 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     curl: [
         [{ t: 'f', v: 'curl ' }, { t: 'd', v: '-X ' }, { t: 's', v: 'POST' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  ' }, { t: 's', v: '"https://api.clarrib.ai/research"' }, { t: 'd', v: ' \\' }],
-        [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Authorization: Bearer $CLARRIB_KEY"' }, { t: 'd', v: ' \\' }],
+        [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Authorization: Bearer $CLARIBB_KEY"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Content-Type: application/json"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -d ' }, { t: 'd', v: "'" }, { t: 'd', v: '{' }],
         [{ t: 'd', v: '    ' }, { t: 'p', v: '"memory"' }, { t: 'd', v: ': ' }, { t: 's', v: '"persistent"' }, { t: 'd', v: ',' }],
@@ -384,9 +514,9 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     ],
 };
 const CLIPBOARD_CODE: Record<string, (q: string) => string> = {
-    python: q => `from clarrib import CLARRIB\n\nclient = CLARRIB(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
-    node: q => `import CLARRIB from '@clarrib/client'\n\nconst client = new CLARRIB({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
-    curl: q => `curl -X POST "https://api.clarrib.ai/research" \\\n  -H "Authorization: Bearer $CLARRIB_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
+    python: q => `from clarrib import CLARIBB\n\nclient = CLARIBB(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
+    node: q => `import CLARIBB from '@clarrib/client'\n\nconst client = new CLARIBB({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
+    curl: q => `curl -X POST "https://api.clarrib.ai/research" \\\n  -H "Authorization: Bearer $CLARIBB_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
 };
 
 function CodePanel({ query }: { query: string }) {
@@ -406,26 +536,35 @@ function CodePanel({ query }: { query: string }) {
         ? 'response = client.research('
         : lang === 'node' ? 'const response = await client.research(' : '';
     return (
-        <div className="overflow-hidden" style={{ background: 'transparent' }}>
-            {/* Tab bar */}
-            <div className="flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-center gap-5">
+        <div className="overflow-hidden rounded-xl" style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {/* Title bar */}
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {/* Language tabs — left */}
+                <div className="flex items-center gap-4">
                     {tabs.map(tab => (
                         <button key={tab.id} onClick={() => setLang(tab.id)}
-                            className="text-[12.5px] transition-colors" style={{
+                            className="text-[12px] transition-colors" style={{
                                 color: lang === tab.id ? '#F8F8F2' : '#4A5072',
                                 fontWeight: lang === tab.id ? 600 : 400,
-                                borderBottom: lang === tab.id ? '1.5px solid rgba(255,255,255,0.4)' : '1.5px solid transparent',
+                                borderBottom: lang === tab.id ? '1.5px solid rgba(255,255,255,0.35)' : '1.5px solid transparent',
                                 paddingBottom: 2,
                             }}>{tab.label}</button>
                     ))}
                 </div>
-                <button onClick={copy} className="transition-opacity hover:opacity-70" style={{ color: copied ? '#50FA7B' : '#4A5072' }}>
-                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+                {/* Mac dots + copy — right */}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FF5F57' }} />
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FEBC2E' }} />
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#28C840' }} />
+                    </div>
+                    <button onClick={copy} className="transition-opacity hover:opacity-70" style={{ color: copied ? '#50FA7B' : '#4A5072' }}>
+                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                </div>
             </div>
             {/* Code body */}
-            <div className="px-1 py-4 font-mono text-[12.5px] leading-[1.85]">
+            <div className="px-4 py-4 font-mono text-[12.5px] leading-[1.85]">
                 {code.map((line, i) => (
                     <div key={`${lang}${i}`} className="empty:h-[1.85em]">
                         {line.map((seg, j) => <span key={j} style={{ color: SYN[seg.t] }}>{seg.v}</span>)}
@@ -459,7 +598,7 @@ const TICKER = ['semantic vector memory', '4 parallel agents', 'knowledge graph 
 /* ── Shared style constants ──────────────── */
 const C = {
     black: '#000000',
-    layer: '#0B0B0D',
+    layer: '#000000',
     border: 'rgba(255,255,255,0.06)',
     borderM: 'rgba(255,255,255,0.10)',
     text: '#FFFFFF',
@@ -472,6 +611,198 @@ const C = {
 /* ════════════════════════════════════════════
    PAGE
 ════════════════════════════════════════════ */
+/* ── Demo Search Bar (persistent bottom bar) ── */
+function DemoSearchBar() {
+    const [query, setQuery] = useState('');
+    const [scrolled, setScrolled] = useState(false);
+    const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [chatCount, setChatCount] = useState(0);
+    const [showGate, setShowGate] = useState(false);
+    const [chatHidden, setChatHidden] = useState(false);
+    const chatRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const MAX_FREE = 4;
+
+    useEffect(() => {
+        const onScroll = () => {
+            setScrolled(window.scrollY > 80);
+            setChatHidden(true); // always hide chat on scroll
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    useEffect(() => {
+        if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }, [messages]);
+
+    const send = async () => {
+        const q = query.trim();
+        if (!q || loading) return;
+        if (chatCount >= MAX_FREE) { setShowGate(true); return; }
+        setQuery('');
+        setChatHidden(false);
+        setMessages(prev => [...prev, { role: 'user', text: q }]);
+        setLoading(true);
+        try {
+            const res = await fetch('/api/chat-demo', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: q }),
+            });
+            const data = await res.json();
+            setMessages(prev => [...prev, { role: 'ai', text: data.response ?? data.error ?? 'Error' }]);
+            const next = chatCount + 1;
+            setChatCount(next);
+            if (next >= MAX_FREE) setTimeout(() => setShowGate(true), 1800);
+        } catch {
+            setMessages(prev => [...prev, { role: 'ai', text: 'Network error — please try again.' }]);
+        } finally { setLoading(false); }
+    };
+
+    const barBg = 'rgba(12,12,14,0.92)';
+    const barBdr = 'rgba(232,62,140,0.22)';
+
+    return (
+        <>
+            <AnimatePresence>
+                {messages.length > 0 && !chatHidden && (
+                    <div className="fixed z-[60] pointer-events-none"
+                        style={{ bottom: 88, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                            style={{ width: 'min(640px, calc(100vw - 32px))' }}>
+                            {/* top boundary cap */}
+                            <div className="pointer-events-none mb-1 flex items-center gap-2" style={{ opacity: 0.55 }}>
+                                <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(232,62,140,0.3) 40%, rgba(232,62,140,0.3) 60%, transparent)' }} />
+                                <span style={{ fontSize: 9, letterSpacing: '0.12em', color: 'rgba(232,62,140,0.7)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>CLARIBB · DEMO CHAT</span>
+                                <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, transparent, rgba(232,62,140,0.3) 40%, rgba(232,62,140,0.3) 60%, transparent)' }} />
+                            </div>
+                            {/* scrollable messages with top fade */}
+                            <div className="relative">
+                                <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+                                    style={{ height: 36, background: 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)' }} />
+                                <div ref={chatRef} className="pointer-events-auto flex flex-col gap-3 max-h-64 overflow-y-auto pr-1" style={{ scrollbarWidth: 'none' }}>
+                                    {messages.map((m, i) => (
+                                        <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
+                                            className={`text-[13.5px] leading-relaxed px-4 py-3 rounded-2xl ${m.role === 'user' ? 'self-end max-w-[80%]' : 'self-start max-w-[90%]'}`}
+                                            style={{ background: m.role === 'user' ? 'rgba(167,139,212,0.18)' : 'rgba(20,20,24,0.95)', border: `1px solid ${m.role === 'user' ? 'rgba(167,139,212,0.3)' : 'rgba(255,255,255,0.07)'}`, color: m.role === 'user' ? '#D4BBFF' : '#CACACA', backdropFilter: 'blur(12px)' }}>
+                                            {m.role === 'ai' && <span className="text-[10px] font-semibold tracking-widest block mb-1" style={{ color: '#A78BD4' }}>CLARIBB</span>}
+                                            {m.text}
+                                        </motion.div>
+                                    ))}
+                                    {loading && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                            className="self-start px-4 py-3 rounded-2xl text-[13px]"
+                                            style={{ background: 'rgba(20,20,24,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)', color: '#A78BD4' }}>
+                                            <span className="text-[10px] font-semibold tracking-widest block mb-1">CLARIBB</span>
+                                            <span className="inline-flex gap-1">
+                                                {[0, 1, 2].map(d => (
+                                                    <motion.span key={d} className="w-1.5 h-1.5 rounded-full bg-current inline-block"
+                                                        animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.9, delay: d * 0.2, repeat: Infinity }} />
+                                                ))}
+                                            </span>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </div>
+                            {chatCount > 0 && chatCount < MAX_FREE && (
+                                <div className="flex justify-end mt-2">
+                                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                                        {MAX_FREE - chatCount} free {MAX_FREE - chatCount === 1 ? 'search' : 'searches'} left
+                                    </span>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ── bottom bar ── */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center"
+                style={{ paddingBottom: 24, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 60%, transparent)', pointerEvents: 'none' }}>
+                <motion.div
+                    animate={{ width: scrolled ? 280 : 640 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 32, mass: 0.8 }}
+                    style={{ pointerEvents: 'auto', maxWidth: 'calc(100vw - 32px)' }}>
+                    <form onSubmit={e => { e.preventDefault(); send(); }}
+                        onClick={() => { if (messages.length > 0) setChatHidden(false); }}
+                        className="flex items-center gap-2 px-4 py-3.5 rounded-full"
+                        style={{ background: barBg, border: `1px solid ${barBdr}`, backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', outline: 'none' }}>
+                        <Search className="shrink-0" style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }} />
+                        <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+                            onFocus={() => { if (messages.length > 0) setChatHidden(false); }}
+                            placeholder={scrolled ? 'Try CLARIBB...' : 'Ask anything — CLARIBB remembers your research...'}
+                            className="flex-1 bg-transparent outline-none ring-0 focus:outline-none focus:ring-0 text-[13.5px] placeholder:transition-all"
+                            style={{ color: '#E0E0E0', caretColor: '#E83E8C', boxShadow: 'none' }} />
+                        <button type="submit" disabled={loading || !query.trim()}
+                            className="flex items-center justify-center w-7 h-7 rounded-full transition-all"
+                            style={{ background: query.trim() ? '#A78BD4' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <Send style={{ width: 11, height: 11, color: query.trim() ? '#fff' : 'rgba(255,255,255,0.3)' }} />
+                        </button>
+                        {messages.length > 0 && (
+                            <button type="button" onClick={() => setChatHidden(h => !h)}
+                                className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
+                                style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
+                                title={chatHidden ? 'Show chat' : 'Hide chat'}>
+                                <X style={{ width: 11, height: 11, color: chatHidden ? '#A78BD4' : 'rgba(255,255,255,0.4)' }} />
+                            </button>
+                        )}
+                    </form>
+                </motion.div>
+            </div>
+
+            {/* ── gate modal ── */}
+            <AnimatePresence>
+                {showGate && (
+                    <motion.div className="fixed inset-0 z-[70] flex items-center justify-center"
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        style={{ backdropFilter: 'blur(18px)', background: 'rgba(0,0,0,0.75)' }}
+                        onClick={() => setShowGate(false)}>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                            onClick={e => e.stopPropagation()}
+                            className="relative rounded-2xl p-8 text-center"
+                            style={{ background: '#0e0e10', border: '1px solid rgba(167,139,212,0.2)', maxWidth: 420, width: 'calc(100vw - 48px)', boxShadow: '0 0 60px rgba(167,139,212,0.08)' }}>
+                            <button onClick={() => setShowGate(false)}
+                                className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/5 transition-colors"
+                                style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                <X className="w-4 h-4" />
+                            </button>
+                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+                                style={{ background: 'rgba(167,139,212,0.1)', border: '1px solid rgba(167,139,212,0.25)' }}>
+                                <Brain className="w-7 h-7" style={{ color: '#A78BD4' }} />
+                            </div>
+                            <h3 className="font-bold text-[20px] mb-2" style={{ letterSpacing: '-0.02em' }}>You&apos;ve used your free searches</h3>
+                            <p className="text-[14px] leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                                Create a free account to unlock unlimited research sessions, persistent memory, and all 4 CLARIBB agents.
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <Link href="/auth"
+                                    className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-[14px] transition-opacity hover:opacity-90"
+                                    style={{ background: '#A78BD4', color: '#fff' }}>
+                                    Create free account <ArrowRight className="w-4 h-4" />
+                                </Link>
+                                <Link href="/auth"
+                                    className="flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-[13px] transition-opacity hover:opacity-70"
+                                    style={{ color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                                    Already have an account? Sign in
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+}
+
 export default function LandingPage() {
     const mounted = useMounted();
     const heroRef = useRef(null);
@@ -509,7 +840,7 @@ export default function LandingPage() {
                 {/* Logo */}
                 <div className="flex items-center gap-2.5">
                     <Brain className="w-5 h-5" style={{ color: C.sec }} />
-                    <span className="text-[15px] font-semibold tracking-tight">CLARRIB</span>
+                    <span className="text-[15px] font-semibold tracking-tight">CLARIBB</span>
                 </div>
                 {/* Links */}
                 <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
@@ -544,7 +875,7 @@ export default function LandingPage() {
                             className="font-bold leading-[1.06] mb-5"
                             style={{ fontSize: 'clamp(34px,4.6vw,56px)', letterSpacing: '-0.025em' }}>
                             <span style={{
-                                background: 'linear-gradient(180deg, #3A3A3A 0%, #FFFFFF 55%)',
+                                background: 'linear-gradient(180deg, #C8C8C8 0%, #FFFFFF 70%)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
@@ -556,7 +887,7 @@ export default function LandingPage() {
                         <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
                             className="text-[15.5px] font-light leading-[1.74] mb-8" style={{ color: C.sec, maxWidth: 500 }}>
                             Four specialized AI agents. One persistent memory graph.
-                            CLARRIB builds a compounding knowledge model — so every session makes you sharper than the last.
+                            CLARIBB builds a compounding knowledge model — so every session makes you sharper than the last.
                         </motion.p>
 
                         {/* Buttons */}
@@ -675,7 +1006,7 @@ export default function LandingPage() {
                                             <Database style={{ color: '#A78BD4', width: 16, height: 16 }} />
                                         </div>
                                         <h3 className="text-[16px] font-semibold mb-2">Semantic Vector Memory</h3>
-                                        <p className="text-[13px] leading-relaxed mb-4" style={{ color: C.muted }}>Every note and conversation embedded via pgvector. CLARRIB retrieves the right context from months ago — in milliseconds, no manual tagging.</p>
+                                        <p className="text-[13px] leading-relaxed mb-4" style={{ color: C.muted }}>Every note and conversation embedded via pgvector. CLARIBB retrieves the right context from months ago — in milliseconds, no manual tagging.</p>
                                         <div className="flex flex-wrap gap-2">
                                             {['pgvector', 'cosine similarity', 'auto-chunking', 'cross-session recall'].map(t => (
                                                 <span key={t} className="text-[11px] px-2.5 py-1 rounded-md" style={{ background: 'rgba(167,139,212,0.07)', color: '#A78BD4', border: '1px solid rgba(167,139,212,0.18)' }}>{t}</span>
@@ -745,7 +1076,7 @@ export default function LandingPage() {
                         {/* 2 small */}
                         {[
                             { icon: GitBranch, title: 'Session Intelligence', desc: 'AI summaries, open questions, gaps resolved. Return weeks later and pick up exactly where you left off.', color: '#9BBFA8', bg: 'rgba(155,191,168,0.07)', border: 'rgba(155,191,168,0.2)' },
-                            { icon: Lightbulb, title: 'Research Hypotheses', desc: 'CLARRIB generates testable hypotheses from your corpus — ideas you might not have connected yourself.', color: '#C47AA0', bg: 'rgba(196,122,160,0.07)', border: 'rgba(196,122,160,0.2)' },
+                            { icon: Lightbulb, title: 'Research Hypotheses', desc: 'CLARIBB generates testable hypotheses from your corpus — ideas you might not have connected yourself.', color: '#C47AA0', bg: 'rgba(196,122,160,0.07)', border: 'rgba(196,122,160,0.2)' },
                         ].map((fc, i) => (
                             <FadeUp key={`fc${i}`} delay={0.09 + i * 0.05}>
                                 <motion.div whileHover={{ y: -2 }} className="p-6 rounded-xl" style={{ background: 'rgba(8,8,10,0.8)', border: `1px solid ${C.border}` }}>
@@ -783,28 +1114,38 @@ export default function LandingPage() {
             {/* ═══ STATS ══════════════════════════════ */}
             <section className="relative py-20 border-y overflow-hidden" style={{ background: C.black, borderColor: C.border }}>
                 <div className="max-w-screen-xl mx-auto px-8 grid grid-cols-2 md:grid-cols-4 divide-x" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
-                    {[{ n: 4, s: '', lbl: 'AI Agents' }, { n: 100, s: '+', lbl: 'Depth Score Scale' }, { n: 5, s: '', lbl: 'Core Features' }, { n: 36, s: 'h', lbl: 'Built in' }].map((st, i) => (
+                    {([
+                        { custom: '4', s: '', lbl: 'Specialized AI Agents', sub: 'running in parallel' },
+                        { custom: '<1s', s: '', lbl: 'Memory Recall', sub: 'across all sessions' },
+                        { custom: '100%', s: '', lbl: 'Context Preserved', sub: 'no session reset, ever' },
+                        { custom: '∞', s: '', lbl: 'Knowledge Compounds', sub: 'every session builds on last' },
+                    ] as { custom: string; s: string; lbl: string; sub: string }[]).map((st, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                             className="text-center py-2 px-6" style={{ borderColor: C.border }}>
-                            <div className="text-[30px] font-bold mb-1"><AnimCounter target={st.n} />{st.s}</div>
-                            <div className="text-[12px]" style={{ color: C.muted }}>{st.lbl}</div>
+                            <div className="text-[32px] font-bold mb-1 tracking-tight">{st.custom}{st.s}</div>
+                            <div className="text-[13px] font-medium mb-0.5" style={{ color: C.text }}>{st.lbl}</div>
+                            <div className="text-[11px]" style={{ color: C.muted }}>{st.sub}</div>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
             {/* ═══ USE CASES ══════════════════════════ */}
+            {/* ═══ FAQ ════════════════════════════════ */}
+            <FAQSection />
+
+            {/* ═══ WHO USES ════════════════════════════ */}
             <section className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
                     <FadeUp className="text-center mb-14">
                         <Eyebrow>Built For</Eyebrow>
-                        <h2 style={{ fontSize: 'clamp(38px,4.5vw,56px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>Who uses <span style={{ color: '#E83E8C', fontStyle: 'italic' }}>CLARRIB</span>?</h2>
+                        <h2 style={{ fontSize: 'clamp(38px,4.5vw,56px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>Who uses <span style={{ color: '#E83E8C', fontStyle: 'italic' }}>CLARIBB</span>?</h2>
                     </FadeUp>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
                             { e: '🔬', title: 'PhD Researchers', desc: 'Never lose track of 3 years of papers. Surface the connection your advisor missed.', tags: ['Literature Review', 'Concept Mapping'] },
                             { e: '🏢', title: 'Strategy Analysts', desc: 'Build compounding competitive intelligence. Connect every insight across sprints.', tags: ['Market Research', 'Trend Detection'] },
-                            { e: '⚖️', title: 'Legal Professionals', desc: 'Track case law and precedent across months. CLARRIB never forgets a ruling.', tags: ['Case Law', 'Precedent Cross-Reference'] },
+                            { e: '⚖️', title: 'Legal Professionals', desc: 'Track case law and precedent across months. CLARIBB never forgets a ruling.', tags: ['Case Law', 'Precedent Cross-Reference'] },
                             { e: '💡', title: 'Innovation Teams', desc: 'Detect convergence patterns across disciplines before they become obvious.', tags: ['Tech Scouting', 'Pattern Synthesis'] },
                         ].map((uc, i) => (
                             <motion.div key={i} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
@@ -831,7 +1172,7 @@ export default function LandingPage() {
                             <span style={{ color: '#E83E8C' }}>Stop starting</span> from zero.
                         </h2>
                         <p className="text-[15.5px] font-light mb-10" style={{ color: C.sec }}>
-                            Build a research brain that compounds with every session. The longer you use CLARRIB, the more irreplaceable it becomes.
+                            Build a research brain that compounds with every session. The longer you use CLARIBB, the more irreplaceable it becomes.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                             <Link href="/auth" className="flex items-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:opacity-90 transition-opacity"
@@ -853,7 +1194,7 @@ export default function LandingPage() {
                 <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2.5">
                         <Brain className="w-4 h-4" style={{ color: C.faint }} />
-                        <span className="font-semibold text-[14px]">CLARRIB</span>
+                        <span className="font-semibold text-[14px]">CLARIBB</span>
                         <span className="text-[13px]" style={{ color: C.faint }}> — Multi-Agent Research Intelligence</span>
                     </div>
                     <div className="flex items-center gap-5 text-[12.5px]" style={{ color: C.faint }}>
@@ -862,6 +1203,7 @@ export default function LandingPage() {
                     </div>
                 </div>
             </footer>
+            <DemoSearchBar />
         </div>
     );
 }
