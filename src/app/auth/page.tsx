@@ -179,7 +179,7 @@ function Field({ icon: Icon, type, placeholder, value, onChange, right }: {
 }
 
 export default function AuthPage() {
-    const [mode, setMode] = useState<'login' | 'signup'>('login');
+    const [mode, setMode] = useState<'login' | 'signup'>('signup');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -228,7 +228,8 @@ export default function AuthPage() {
             <div style={{
                 height: '100vh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
-                display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '3rem', padding: '0 4rem',
                 position: 'relative', overflow: 'hidden',
             }}>
                 {/* Ambient top glow */}
@@ -312,7 +313,7 @@ export default function AuthPage() {
                 </Orbiter>
 
                 {/* ── LEFT SIDEBAR ── */}
-                <div style={{ flex: 1, padding: '2.5rem 2rem 2.5rem 4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '54%', minWidth: 0 }}>
+                <div style={{ flex: 1, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '54%', minWidth: 0 }}>
                     {/* Logo */}
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
@@ -368,7 +369,7 @@ export default function AuthPage() {
                 {/* ── AUTH CARD ── */}
                 <motion.div ref={cardRef}
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 460, flexShrink: 0, margin: '1.5rem 2.5rem 1.5rem 0', borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
+                    style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 460, flexShrink: 0, margin: '1.5rem 0', borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
                     <BorderEdge cardRef={cardRef} />
 
                     {done ? (
