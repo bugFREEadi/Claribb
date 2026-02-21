@@ -35,7 +35,29 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             if (!res.ok) throw new Error(data.error);
             onCreated(data.project);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Failed to create project');
+            // ── local-first fallback for demo ──
+            // If API fails (no Supabase / missing table), create a local project
+            // so the demo always works.
+            const localProject = {
+                id: crypto.randomUUID(),
+                name: name.trim(),
+                description: description.trim(),
+                icon: selectedIcon,
+                color: selectedColor,
+                user_id: 'local',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                memory_count: 0,
+                session_count: 0,
+                concept_count: 0,
+                depth_score: 0,
+            };
+            // Persist locally so workspace page can load it
+            try {
+                const existing = JSON.parse(localStorage.getItem('claribb_local_projects') || '[]');
+                localStorage.setItem('claribb_local_projects', JSON.stringify([localProject, ...existing]));
+            } catch { /* storage quota */ }
+            onCreated(localProject as Parameters<typeof onCreated>[0]);
         } finally {
             setLoading(false);
         }

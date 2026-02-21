@@ -28,11 +28,22 @@ export default function DashboardPage() {
         try {
             const res = await fetch('/api/projects');
             const data = await res.json();
-            const loaded = data.projects || [];
+            const apiProjects = data.projects || [];
+
+            // Merge with any locally-created projects (demo fallback)
+            let localProjects: Project[] = [];
+            try {
+                localProjects = JSON.parse(localStorage.getItem('claribb_local_projects') || '[]');
+            } catch { /* ignore */ }
+
+            // Deduplicate by id — API projects take priority
+            const apiIds = new Set(apiProjects.map((p: Project) => p.id));
+            const onlyLocal = localProjects.filter((p: Project) => !apiIds.has(p.id));
+            const loaded = [...apiProjects, ...onlyLocal];
             setProjects(loaded);
 
             // Auto-fetch existing (unread) digest for first project
-            if (loaded.length > 0) {
+            if (loaded.length > 0 && loaded[0].user_id !== 'local') {
                 try {
                     const dRes = await fetch(`/api/digest?projectId=${loaded[0].id}`);
                     const dData = await dRes.json();
@@ -41,6 +52,11 @@ export default function DashboardPage() {
             }
         } catch (err) {
             console.error('Failed to fetch projects:', err);
+            // Still try to load local projects
+            try {
+                const localProjects = JSON.parse(localStorage.getItem('claribb_local_projects') || '[]');
+                setProjects(localProjects);
+            } catch { /* ignore */ }
         } finally {
             setLoading(false);
         }
