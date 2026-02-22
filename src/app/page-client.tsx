@@ -3,7 +3,7 @@
 import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check } from 'lucide-react';
+import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check, AlertTriangle } from 'lucide-react';
 
 /* ── SSR-safe mount guard ───────────────────
    Prevents hydration mismatch for browser-only components.
@@ -282,9 +282,9 @@ const FAQ_ITEMS = [
         tags: ['pgvector', 'semantic memory', 'persistent context', 'embeddings'],
     },
     {
-        q: 'What are the 4 agents and what do they each do?',
-        a: 'Recall searches your memory graph for relevant past context. Explorer crawls live web sources to fill knowledge gaps. Critique acts as devil\'s advocate — surfacing counterarguments and weak assumptions. Connector finds non-obvious links between concepts across your entire research history.',
-        tags: ['Recall', 'Explorer', 'Critique', 'Connector', 'multi-agent'],
+        q: 'What are the 5 agents and what do they each do?',
+        a: 'Recall searches your memory graph for relevant past context. Explorer crawls live web sources to fill knowledge gaps. Critique acts as devil\'s advocate — surfacing counterarguments and weak assumptions. Connector finds non-obvious links between concepts across your entire research history. Conflict Detector spots contradictions between your stored memories and new incoming findings.',
+        tags: ['Recall', 'Explorer', 'Critique', 'Connector', 'Conflict Detector', 'multi-agent'],
     },
     {
         q: 'Which AI models power CLARIBB?',
@@ -389,7 +389,7 @@ function FAQSection() {
 /* ── Pipeline flow animation ─────────────── */
 const PIPELINE_STEPS = [
     { n: '01', icon: Cpu, title: 'Query arrives', desc: 'Intent understood. Context from every past session loaded instantly.', color: '#A78BD4' },
-    { n: '02', icon: Activity, title: '4 agents activate', desc: 'Recall, Explorer, Critique, Connector — all run in parallel.', color: '#72B8CC' },
+    { n: '02', icon: Activity, title: '5 agents activate', desc: 'Recall, Explorer, Critique, Connector, Conflict Detector — all run in parallel.', color: '#72B8CC' },
     { n: '03', icon: GitBranch, title: 'Synthesis happens', desc: 'Results merge. Memory graph updates. New relationships extracted.', color: '#C47AA0' },
     { n: '04', icon: Sparkles, title: 'Deep answer', desc: 'Response grounded in your full history. Knowledge compounds.', color: '#9BBFA8' },
 ];
@@ -592,8 +592,9 @@ const AGENTS = [
     { id: 'explorer', n: '02', name: 'Explorer', icon: Search, accent: 'rgba(114,184,204,0.15)', accentBorder: 'rgba(114,184,204,0.28)', accentIcon: '#72B8CC', desc: 'Live web research when memory has gaps. Crawls, extracts, and embeds new knowledge in real time.', tags: ['live crawling', 'auto-embed', 'gap detection'] },
     { id: 'critique', n: '03', name: 'Critique', icon: Shield, accent: 'rgba(196,122,160,0.15)', accentBorder: 'rgba(196,122,160,0.28)', accentIcon: '#C47AA0', desc: "Devil's advocate. Surfaces counterarguments, hidden assumptions, and logical weaknesses in every response.", tags: ['steelmanning', 'bias detection', 'assumption audit'] },
     { id: 'connector', n: '04', name: 'Connector', icon: Network, accent: 'rgba(196,154,90,0.14)', accentBorder: 'rgba(196,154,90,0.26)', accentIcon: '#C49A5A', desc: "Discovers non-obvious links across domains. Finds connections you didn't know you were looking for.", tags: ['cross-domain', 'serendipity', 'pattern synthesis'] },
+    { id: 'conflict', n: '05', name: 'Conflict Detector', icon: AlertTriangle, accent: 'rgba(244,63,94,0.12)', accentBorder: 'rgba(244,63,94,0.28)', accentIcon: '#f43f5e', desc: 'Catches contradictions between your stored memories and new findings before they corrupt your research.', tags: ['contradiction detection', 'memory integrity', 'consistency'] },
 ];
-const TICKER = ['semantic vector memory', '4 parallel agents', 'knowledge graph time machine', 'live chain of thought', 'steelman engine', 'belief evolution tracker', 'trajectory prediction', 'cross-project serendipity'];
+const TICKER = ['semantic vector memory', '5 parallel agents', 'knowledge graph time machine', 'live chain of thought', 'steelman engine', 'belief evolution tracker', 'trajectory prediction', 'cross-project serendipity', 'conflict detection'];
 
 /* ── Shared style constants ──────────────── */
 const C = {
@@ -971,11 +972,11 @@ export default function LandingPage() {
             <section id="agents" className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
                 <div className="relative z-10 max-w-screen-xl mx-auto px-8">
                     <FadeUp className="text-center mb-16">
-                        <Eyebrow>The Four Agents</Eyebrow>
+                        <Eyebrow>The Five Agents</Eyebrow>
                         <h2 style={{ fontSize: 'clamp(42px,5.5vw,64px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, marginBottom: 16 }}>
-                            Four <em style={{ color: '#BD93F9', fontStyle: 'italic', fontWeight: 800 }}>specialists</em>.<br />One unified mind.
+                            Five <em style={{ color: '#BD93F9', fontStyle: 'italic', fontWeight: 800 }}>specialists</em>.<br />One unified mind.
                         </h2>
-                        <p style={{ fontSize: 16, fontWeight: 300, maxWidth: 540, margin: '0 auto', color: C.sec, lineHeight: 1.72 }}>Every query activates all four agents simultaneously. They compete, collaborate, and synthesize — producing answers no single model can match.</p>
+                        <p style={{ fontSize: 16, fontWeight: 300, maxWidth: 540, margin: '0 auto', color: C.sec, lineHeight: 1.72 }}>Every query activates all five agents simultaneously. They compete, collaborate, and synthesize — producing answers no single model can match.</p>
                     </FadeUp>
                     <AgentSpreadCards />
                 </div>

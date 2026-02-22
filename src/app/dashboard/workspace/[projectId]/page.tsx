@@ -1308,10 +1308,10 @@ export default function WorkspacePage() {
 
                 {/* Input */}
                 <div className="shrink-0 px-5 pb-5 pt-3" style={{ background: 'var(--bg-primary)' }}>
-                    <div className="relative flex items-end gap-3 px-4 py-3 rounded-2xl" style={{
+                    <div className="relative flex items-end gap-2 px-4 py-3 rounded-2xl" style={{
                         background: 'rgba(15,15,18,0.9)',
-                        border: streaming ? '1px solid rgba(232,62,140,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: streaming ? '0 0 24px rgba(232,62,140,0.15)' : '0 4px 24px rgba(0,0,0,0.4)',
+                        border: streaming ? '1px solid rgba(232,62,140,0.5)' : '1px solid rgba(232,62,140,0.22)',
+                        boxShadow: streaming ? '0 0 24px rgba(232,62,140,0.15)' : '0 0 0 3px rgba(232,62,140,0.04)',
                         backdropFilter: 'blur(16px)',
                         transition: 'all 0.3s',
                     }}>
@@ -1343,38 +1343,39 @@ export default function WorkspacePage() {
                             style={{ color: 'var(--text-primary)', maxHeight: '160px', minHeight: '24px', caretColor: '#E83E8C' }}
                         />
 
-                        {streaming ? (
-                            <button onClick={() => abortRef.current?.abort()}
-                                className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-105"
-                                style={{ background: 'rgba(232,62,140,0.15)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
-                                <StopCircle className="w-4 h-4" />
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                {voiceSupported && (
-                                    <button
-                                        onClick={voiceActive ? stopVoice : startVoice}
-                                        className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
-                                        style={voiceActive
-                                            ? { background: 'rgba(232,62,140,0.2)', border: '1px solid rgba(232,62,140,0.5)', color: '#E83E8C', boxShadow: '0 0 16px rgba(232,62,140,0.4)' }
-                                            : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
-                                        }
-                                        title={voiceActive ? 'Stop listening' : 'Speak your question'}
-                                    >
-                                        {voiceActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                                    </button>
-                                )}
-                                <button onClick={sendMessage} disabled={!input.trim()}
-                                    className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-30"
-                                    style={{
-                                        background: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.06)',
-                                        boxShadow: input.trim() ? '0 0 20px rgba(232,62,140,0.5)' : 'none',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                    }}>
-                                    <Send className="w-3.5 h-3.5 text-white" />
+                        {/* Right side controls — no separate pink square */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {voiceSupported && (
+                                <button
+                                    onClick={voiceActive ? stopVoice : startVoice}
+                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
+                                    style={voiceActive
+                                        ? { background: 'rgba(232,62,140,0.2)', border: '1px solid rgba(232,62,140,0.5)', color: '#E83E8C' }
+                                        : { background: 'transparent', border: '1px solid transparent', color: 'rgba(255,255,255,0.25)' }
+                                    }
+                                    title={voiceActive ? 'Stop listening' : 'Speak your question'}
+                                >
+                                    {voiceActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
                                 </button>
-                            </div>
-                        )}
+                            )}
+                            {streaming ? (
+                                <button onClick={() => abortRef.current?.abort()}
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+                                    style={{ background: 'rgba(232,62,140,0.12)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
+                                    <StopCircle className="w-3.5 h-3.5" />
+                                </button>
+                            ) : (
+                                <button onClick={sendMessage} disabled={!input.trim()}
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110 disabled:opacity-25"
+                                    style={{
+                                        background: input.trim() ? 'rgba(232,62,140,0.15)' : 'transparent',
+                                        border: `1px solid ${input.trim() ? 'rgba(232,62,140,0.4)' : 'transparent'}`,
+                                        color: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.2)',
+                                    }}>
+                                    <Send className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

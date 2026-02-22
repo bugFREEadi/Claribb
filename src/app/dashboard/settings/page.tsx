@@ -118,13 +118,14 @@ export default function SettingsPage() {
                 </div>
             </Section>
 
-            <Section icon={Shield} title="AI Agents" color="#10b981">
+            <Section icon={Shield} title="AI Agents (5 Active)" color="#10b981">
                 <div className="space-y-3">
                     {[
                         { name: 'Recall Agent', desc: 'Searches your semantic memory for relevant context', color: '#6366f1' },
                         { name: 'Explorer Agent', desc: 'Web search when memory confidence is low', color: '#06b6d4' },
                         { name: 'Critique Agent', desc: 'Identifies weaknesses and counterarguments', color: '#f59e0b' },
                         { name: 'Connector Agent', desc: 'Finds non-obvious cross-topic connections', color: '#10b981' },
+                        { name: 'Conflict Detector', desc: 'Spots contradictions between your memories and new findings', color: '#f43f5e' },
                     ].map(agent => (
                         <div key={agent.name} className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                             <div className="flex items-center gap-3">

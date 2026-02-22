@@ -327,7 +327,7 @@ export async function orchestrate(input: OrchestratorInput): Promise<Orchestrato
     }
 
     // Run Explorer, Critique, Connector, and Conflict Detector in parallel
-    emit('parallel', '⚡ Running 4 agents in parallel...');
+    emit('parallel', '⚡ Running 5 agents in parallel...');
 
     const [explorerResult, critiqueResult, connectorResult, conflictResult] = await Promise.all([
         runExplorerAgent(query, recallResult.confidence).then(r => {
