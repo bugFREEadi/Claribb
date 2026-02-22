@@ -280,53 +280,54 @@ export default function ChatInterface({ projectId, sessionId, lastSession, onSes
                     )}
                 </div>
 
-                {/* Textarea + Send */}
-                <div className="flex gap-3 items-end">
-                    <div className="flex-1 relative">
-                        <textarea
-                            ref={textareaRef}
-                            value={input}
-                            onChange={e => {
-                                setInput(e.target.value);
-                                e.target.style.height = 'auto';
-                                e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
-                            }}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Ask CLARIBB about your research..."
-                            disabled={loading}
-                            rows={1}
-                            className="w-full px-4 py-3 pr-4 rounded-xl text-sm resize-none transition-all"
-                            style={{
-                                background: 'var(--bg-card)',
-                                border: '1px solid var(--border-strong)',
-                                color: 'var(--text-primary)',
-                                minHeight: '48px',
-                                maxHeight: '160px',
-                            }}
-                        />
+                {/* Textarea + Send — unified bar with pink tint */}
+                <div className="relative">
+                    <textarea
+                        ref={textareaRef}
+                        value={input}
+                        onChange={e => {
+                            setInput(e.target.value);
+                            e.target.style.height = 'auto';
+                            e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask CLARIBB anything about your research..."
+                        disabled={loading}
+                        rows={1}
+                        className="w-full px-4 py-3 rounded-xl text-sm resize-none transition-all"
+                        style={{
+                            background: 'var(--bg-card)',
+                            border: '1px solid rgba(232,62,140,0.28)',
+                            boxShadow: '0 0 0 0px rgba(232,62,140,0)',
+                            color: 'var(--text-primary)',
+                            minHeight: '48px',
+                            maxHeight: '160px',
+                            paddingRight: '3rem',
+                            outline: 'none',
+                        }}
+                        onFocus={e => { e.target.style.border = '1px solid rgba(232,62,140,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(232,62,140,0.08)'; }}
+                        onBlur={e => { e.target.style.border = '1px solid rgba(232,62,140,0.28)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    {/* Inline send / stop icon */}
+                    <div className="absolute right-3 bottom-3">
+                        {loading ? (
+                            <button onClick={handleStop}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:scale-110"
+                                style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.25)', color: '#f43f5e' }}>
+                                <Square className="w-3 h-3" />
+                            </button>
+                        ) : (
+                            <button onClick={handleSend} disabled={!input.trim()}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:scale-110 disabled:opacity-30"
+                                style={{
+                                    background: input.trim() ? 'rgba(232,62,140,0.15)' : 'transparent',
+                                    border: `1px solid ${input.trim() ? 'rgba(232,62,140,0.35)' : 'transparent'}`,
+                                    color: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.2)',
+                                }}>
+                                <Send className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
-
-                    {loading ? (
-                        <button
-                            onClick={handleStop}
-                            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105"
-                            style={{ background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.3)', color: '#f43f5e' }}
-                        >
-                            <Square className="w-4 h-4" />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleSend}
-                            disabled={!input.trim()}
-                            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105 disabled:opacity-40"
-                            style={{
-                                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                                boxShadow: '0 0 20px rgba(99,102,241,0.4)',
-                            }}
-                        >
-                            <Send className="w-4 h-4 text-white" />
-                        </button>
-                    )}
                 </div>
 
                 <p className="text-center text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
