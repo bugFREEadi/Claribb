@@ -201,22 +201,32 @@ export default function ServerDetailPage() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    const getAuthHeaders = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        return {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        };
+    };
+
     const sendMessage = async () => {
         if (!input.trim() || sending || !currentUser) return;
         const content = input.trim();
         setInput('');
         setSending(true);
         try {
-            const { error } = await supabase.from('server_messages').insert({
-                server_id: id,
-                user_id: currentUser.id,
-                user_name: currentUser.name,
-                role: 'user',
-                content,
+            const headers = await getAuthHeaders();
+            const res = await fetch(`/api/servers/${id}/messages`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ content, user_name: currentUser.name }),
             });
-            if (error) console.error('[sendMessage]', error);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                console.error('[sendMessage] error:', res.status, errData);
+            }
         } catch (err) {
-            console.error(err);
+            console.error('[sendMessage]', err);
         } finally {
             setSending(false);
         }
@@ -229,25 +239,20 @@ export default function ServerDetailPage() {
         setAskingAI(true);
         setAiError(null);
 
-        // First insert user message
-        await supabase.from('server_messages').insert({
-            server_id: id,
-            user_id: currentUser.id,
-            user_name: currentUser.name,
-            role: 'user',
-            content: question,
-        });
-
         try {
-            // Get session token to send with request so server can auth user
-            const { data: { session } } = await supabase.auth.getSession();
+            const headers = await getAuthHeaders();
 
+            // Send user message first via API route (admin bypass)
+            await fetch(`/api/servers/${id}/messages`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ content: question, user_name: currentUser.name }),
+            });
+
+            // Then ask AI
             const res = await fetch(`/api/servers/${id}/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
-                },
+                headers,
                 body: JSON.stringify({
                     question,
                     serverName: server.name,
