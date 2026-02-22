@@ -566,6 +566,10 @@ export default function WorkspacePage() {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [projectName, setProjectName] = useState('Research Workspace');
     const [endingSession, setEndingSession] = useState(false);
+    // Session history viewer
+    const [viewingSession, setViewingSession] = useState<Session | null>(null);
+    const [viewingMessages, setViewingMessages] = useState<Array<{ id: string; role: string; content: string; created_at: string }>>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     // ── Killer Feature State ─────────────────────────────────────
     const [toastEvent, setToastEvent] = useState<MemoryFormingEvent | null>(null);
@@ -699,6 +703,22 @@ export default function WorkspacePage() {
             setDepthScore(localScore);
         } catch { /* silent */ }
     }, [projectId, sessions.length]);
+
+    // Load session messages for history viewer
+    const loadSessionHistory = useCallback(async (s: Session) => {
+        setViewingSession(s);
+        setViewingMessages([]);
+        setLoadingHistory(true);
+        try {
+            const res = await fetch(`/api/sessions?sessionId=${s.id}`);
+            const data = await res.json();
+            setViewingMessages(data.messages || []);
+        } catch {
+            setViewingMessages([]);
+        } finally {
+            setLoadingHistory(false);
+        }
+    }, []);
 
     useEffect(() => { refreshDepthScore(); }, [refreshDepthScore]);
 
@@ -1016,10 +1036,14 @@ export default function WorkspacePage() {
                             </div>
                         )}
                         {sessions.filter(s => s.id !== session?.id).slice(0, 15).map(s => (
-                            <div key={s.id} className="px-3 py-2 rounded-xl cursor-pointer transition-all hover:bg-white/[0.04]">
+                            <div key={s.id}
+                                className="px-3 py-2 rounded-xl cursor-pointer transition-all hover:bg-white/[0.04]"
+                                onClick={() => loadSessionHistory(s)}
+                                title="Click to view session history">
                                 <div className="text-[11px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.45)' }}>{s.title || 'Session'}</div>
                                 <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
                                     {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    {(s as Session & { message_count?: number }).message_count ? ` · ${(s as Session & { message_count?: number }).message_count} msgs` : ''}
                                 </div>
                             </div>
                         ))}
@@ -1747,8 +1771,80 @@ export default function WorkspacePage() {
                     }
                 </AnimatePresence>
 
+                {/* 🕐 Session History Modal */}
+                <AnimatePresence>
+                    {viewingSession && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+                            onClick={e => e.target === e.currentTarget && setViewingSession(null)}>
+                            <motion.div initial={{ scale: 0.95, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 12 }}
+                                style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, width: '100%', maxWidth: 680, maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                {/* Header */}
+                                <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>
+                                    <div>
+                                        <h3 style={{ color: '#e0e0e0', fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>{viewingSession.title || 'Session History'}</h3>
+                                        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.72rem', margin: '3px 0 0' }}>
+                                            {new Date(viewingSession.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </div>
+                                    <button onClick={() => setViewingSession(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: 4 }}>
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                                {/* Summary */}
+                                {viewingSession.summary && (
+                                    <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'rgba(232,62,140,0.04)', flexShrink: 0 }}>
+                                        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Summary</p>
+                                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', lineHeight: 1.5, margin: 0 }}>{viewingSession.summary}</p>
+                                    </div>
+                                )}
+                                {/* Messages */}
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {loadingHistory ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', paddingTop: '2rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
+                                            <Loader2 size={14} className="animate-spin" /> Loading messages...
+                                        </div>
+                                    ) : viewingMessages.length === 0 ? (
+                                        <div style={{ textAlign: 'center', paddingTop: '2rem', color: 'rgba(255,255,255,0.2)', fontSize: '0.82rem' }}>
+                                            No messages saved for this session.<br />
+                                            <span style={{ fontSize: '0.72rem' }}>Messages are saved when you click &quot;End &amp; Summarize&quot;.</span>
+                                        </div>
+                                    ) : (
+                                        viewingMessages.map(msg => (
+                                            <div key={msg.id} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                                                <div style={{
+                                                    maxWidth: '85%', padding: '0.6rem 0.85rem',
+                                                    borderRadius: msg.role === 'user' ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+                                                    background: msg.role === 'user' ? 'rgba(232,62,140,0.15)' : 'rgba(255,255,255,0.04)',
+                                                    border: `1px solid ${msg.role === 'user' ? 'rgba(232,62,140,0.25)' : 'rgba(255,255,255,0.07)'}`,
+                                                }}>
+                                                    <p style={{ color: msg.role === 'user' ? '#f0aece' : 'rgba(255,255,255,0.75)', fontSize: '0.82rem', margin: 0, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+                                                        {msg.content}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                {/* Open questions */}
+                                {Array.isArray(viewingSession.open_questions) && viewingSession.open_questions.length > 0 && (
+                                    <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
+                                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Open Questions</p>
+                                        <ul style={{ margin: 0, padding: '0 0 0 14px' }}>
+                                            {(viewingSession.open_questions as string[]).slice(0, 3).map((q, i) => (
+                                                <li key={i} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', marginBottom: 2 }}>{q}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* 🔥 Memory Forming Toast — fires after every response */}
                 <MemoryFormingToast event={toastEvent} />
+
             </div>
         </div>
     );

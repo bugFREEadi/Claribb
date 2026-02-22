@@ -5,17 +5,38 @@ import { storeMemory } from '@/lib/memory/store';
 
 export const runtime = 'nodejs';
 
-// GET: list sessions for a project
+// GET: list sessions OR fetch a single session with messages
 export async function GET(req: NextRequest) {
     try {
         const supabase = await createServerSupabaseClient();
         const { data: { user } } = await supabase.auth.getUser();
-
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const projectId = searchParams.get('projectId');
+        const sessionId = searchParams.get('sessionId'); // single session + messages
 
+        // Fetch single session with its messages
+        if (sessionId) {
+            const { data: session, error: sErr } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('id', sessionId)
+                .eq('user_id', user.id)
+                .single();
+            if (sErr || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+
+            const { data: msgs } = await supabase
+                .from('messages')
+                .select('id, role, content, created_at')
+                .eq('session_id', sessionId)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: true });
+
+            return NextResponse.json({ session, messages: msgs || [] });
+        }
+
+        // List sessions for a project
         if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
 
         const { data: sessions, error } = await supabase
@@ -24,10 +45,9 @@ export async function GET(req: NextRequest) {
             .eq('project_id', projectId)
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
-            .limit(20);
+            .limit(30);
 
         if (error) throw error;
-
         return NextResponse.json({ sessions: sessions || [] });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Failed to fetch sessions';
@@ -40,11 +60,9 @@ export async function POST(req: NextRequest) {
     try {
         const supabase = await createServerSupabaseClient();
         const { data: { user } } = await supabase.auth.getUser();
-
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { projectId } = await req.json();
-
         if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 });
 
         const { data: session, error } = await supabase
@@ -58,7 +76,6 @@ export async function POST(req: NextRequest) {
             .single();
 
         if (error) throw error;
-
         return NextResponse.json({ session });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Failed to create session';
@@ -66,21 +83,37 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// PATCH: end a session + generate summary
+// PATCH: end a session — save messages + generate summary
 export async function PATCH(req: NextRequest) {
     try {
         const supabase = await createServerSupabaseClient();
         const { data: { user } } = await supabase.auth.getUser();
-
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { sessionId, projectId, conversationHistory } = await req.json();
-
         if (!sessionId || !conversationHistory?.length) {
             return NextResponse.json({ error: 'sessionId and conversationHistory required' }, { status: 400 });
         }
 
-        // Generate session summary using GPT-4o-mini
+        // Save messages to DB if not already saved
+        // Insert each message into the messages table
+        const messagesToInsert = conversationHistory
+            .filter((m: { role: string; content: string }) => m.content?.trim())
+            .map((m: { role: string; content: string }) => ({
+                session_id: sessionId,
+                project_id: projectId,
+                user_id: user.id,
+                role: m.role,
+                content: m.content,
+            }));
+
+        if (messagesToInsert.length > 0) {
+            // Use upsert-like approach: delete existing and reinsert (simple, avoids duplicate check)
+            await supabase.from('messages').delete().eq('session_id', sessionId).eq('user_id', user.id);
+            await supabase.from('messages').insert(messagesToInsert);
+        }
+
+        // Generate session summary
         const conversationText = conversationHistory
             .map((m: { role: string; content: string }) => `${m.role.toUpperCase()}: ${m.content}`)
             .join('\n\n');
@@ -117,6 +150,7 @@ export async function PATCH(req: NextRequest) {
                 summary: parsed.summary || '',
                 open_questions: parsed.open_questions || [],
                 resolved_questions: parsed.resolved || [],
+                message_count: messagesToInsert.length,
                 ended_at: new Date().toISOString(),
             })
             .eq('id', sessionId)
@@ -126,13 +160,12 @@ export async function PATCH(req: NextRequest) {
 
         // Store session summary as memory
         if (parsed.summary && projectId) {
-            const sessionTitle = parsed.title || 'Session';
             await storeMemory({
                 userId: user.id,
                 projectId,
                 content: `Session Summary: ${parsed.summary}\n\nKey Insights:\n${(parsed.key_insights || []).join('\n')}`,
                 sourceType: 'session',
-                sourceLabel: sessionTitle,
+                sourceLabel: parsed.title || 'Session',
                 importanceScore: 0.8,
             });
         }
