@@ -274,6 +274,199 @@ function AgentSpreadCards() {
     );
 }
 
+/* ── Competitive Landscape ─────────────────── */
+const COMPETITORS = ['Claribb', 'ChatGPT', 'Perplexity', 'Notion AI', 'Obsidian+AI'];
+const COMP_HEADER_COLORS = ['#E83E8C', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)'];
+
+type CellValue = { icon: '✅' | '❌' | '⚠️'; note?: string };
+interface CompRow { feature: string; sub?: string; cells: CellValue[] }
+
+const COMP_ROWS: CompRow[] = [
+    {
+        feature: 'Persistent memory across sessions',
+        cells: [
+            { icon: '✅', note: 'Always' },
+            { icon: '⚠️', note: 'Paid, limited' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '⚠️', note: 'Manual' },
+        ],
+    },
+    {
+        feature: 'Multi-agent parallel reasoning',
+        cells: [
+            { icon: '✅', note: '5 agents' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+        ],
+    },
+    {
+        feature: 'Semantic memory search (RAG)',
+        cells: [
+            { icon: '✅', note: 'pgvector' },
+            { icon: '❌' },
+            { icon: '⚠️', note: 'Web only' },
+            { icon: '❌' },
+            { icon: '⚠️', note: 'Plugin' },
+        ],
+    },
+    {
+        feature: 'Auto knowledge graph',
+        cells: [
+            { icon: '✅' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '⚠️', note: 'Manual' },
+        ],
+    },
+    {
+        feature: 'Conflict detection & steel manning',
+        cells: [
+            { icon: '✅' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+        ],
+    },
+    {
+        feature: 'Belief evolution tracking',
+        cells: [
+            { icon: '✅' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+        ],
+    },
+    {
+        feature: 'Research trajectory prediction',
+        cells: [
+            { icon: '✅' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+        ],
+    },
+    {
+        feature: '100% free-tier AI stack',
+        cells: [
+            { icon: '✅' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+            { icon: '❌' },
+        ],
+    },
+];
+
+function CompetitiveLandscape() {
+    const ref = useRef(null);
+    const vis = useInView(ref, { once: true, margin: '-80px' });
+
+    return (
+        <section ref={ref} className="relative py-28 overflow-hidden" style={{ background: '#000' }}>
+            <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={vis ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="text-center mb-14">
+                    <Eyebrow>Competitive Landscape</Eyebrow>
+                    <h2 style={{ fontSize: 'clamp(36px,5vw,54px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.08, marginBottom: 14 }}>
+                        Claribb occupies a category<br />
+                        <em style={{ color: '#E83E8C', fontStyle: 'italic' }}>no competitor has entered</em>
+                    </h2>
+                    <p style={{ fontSize: 15, fontWeight: 300, maxWidth: 560, margin: '0 auto', color: C.sec, lineHeight: 1.7 }}>
+                        <strong style={{ color: '#fff', fontWeight: 500 }}>Personal Research Intelligence</strong> — not a search engine, not a chatbot, not a note-taking app.
+                    </p>
+                </motion.div>
+
+                {/* Table */}
+                <motion.div initial={{ opacity: 0, y: 30 }} animate={vis ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.15 }}
+                    style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 680 }}>
+                        {/* Header */}
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                                <th style={{
+                                    padding: '16px 24px', textAlign: 'left', fontSize: 12,
+                                    fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.07em',
+                                    textTransform: 'uppercase', background: 'rgba(255,255,255,0.02)', width: '34%',
+                                }}>Feature</th>
+                                {COMPETITORS.map((c, i) => (
+                                    <th key={c} style={{
+                                        padding: '16px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700,
+                                        color: COMP_HEADER_COLORS[i],
+                                        background: i === 0 ? 'rgba(232,62,140,0.06)' : 'rgba(255,255,255,0.02)',
+                                        borderLeft: i === 0 ? '1px solid rgba(232,62,140,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                                        borderRight: i === 0 ? '1px solid rgba(232,62,140,0.2)' : 'none',
+                                        position: 'relative',
+                                    }}>
+                                        {i === 0 && (
+                                            <div style={{
+                                                position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+                                                background: '#E83E8C', color: '#fff', fontSize: 9, fontWeight: 800,
+                                                padding: '2px 10px', borderRadius: '0 0 8px 8px', letterSpacing: '0.08em',
+                                            }}>US</div>
+                                        )}
+                                        {c}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {COMP_ROWS.map((row, ri) => (
+                                <tr key={ri} style={{
+                                    borderBottom: ri < COMP_ROWS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                    background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
+                                }}>
+                                    {/* Feature name */}
+                                    <td style={{ padding: '14px 24px', fontSize: 13.5, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>
+                                        {row.feature}
+                                        {row.sub && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{row.sub}</div>}
+                                    </td>
+                                    {/* Cells */}
+                                    {row.cells.map((cell, ci) => (
+                                        <td key={ci} style={{
+                                            padding: '14px 16px', textAlign: 'center',
+                                            background: ci === 0 ? 'rgba(232,62,140,0.04)' : 'transparent',
+                                            borderLeft: ci === 0 ? '1px solid rgba(232,62,140,0.15)' : '1px solid rgba(255,255,255,0.04)',
+                                            borderRight: ci === 0 ? '1px solid rgba(232,62,140,0.15)' : 'none',
+                                        }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                                <span style={{ fontSize: 16 }}>{cell.icon}</span>
+                                                {cell.note && (
+                                                    <span style={{
+                                                        fontSize: 10, fontWeight: 500,
+                                                        color: ci === 0 ? '#E83E8C' : 'rgba(255,255,255,0.35)',
+                                                        letterSpacing: '0.02em',
+                                                    }}>{cell.note}</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </motion.div>
+
+                {/* Footnote */}
+                <motion.div initial={{ opacity: 0 }} animate={vis ? { opacity: 1 } : {}} transition={{ delay: 0.4, duration: 0.5 }}
+                    style={{
+                        marginTop: 24, padding: '16px 24px', borderRadius: 12,
+                        background: 'rgba(167,139,212,0.06)', border: '1px solid rgba(167,139,212,0.18)',
+                    }}>
+                    <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0 }}>
+                        💡 The closest alternative would be <strong style={{ color: 'rgba(255,255,255,0.75)' }}>Perplexity + Notion AI + a PhD advisor with perfect recall</strong> — combined into one product. Claribb does all three, without the cost or complexity.
+                    </p>
+                </motion.div>
+            </div>
+        </section>
+    );
+}
+
 /* ── FAQ Section ──────────────────────────── */
 const FAQ_ITEMS = [
     {
@@ -1142,6 +1335,9 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ USE CASES ══════════════════════════ */}
+            {/* ═══ COMPETITIVE LANDSCAPE ══════════════ */}
+            <CompetitiveLandscape />
+
             {/* ═══ FAQ ════════════════════════════════ */}
             <FAQSection />
 
