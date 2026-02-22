@@ -1,15 +1,12 @@
-'use client';
 /**
- * CLARIBB Landing Page — entry point
+ * Claribb Landing Page — server component entry point
  *
- * We use `ssr: false` to completely skip server-side rendering for the
- * animated landing page. This is the definitive fix for React 19 /
- * Next.js 15 hydration errors caused by framer-motion motion components
- * rendering differently on server vs client (initial/animate values,
- * MotionValue styles, useScroll, useInView etc).
+ * page.tsx itself is a SERVER component (no 'use client').
+ * The animated content is dynamically imported client-side to prevent
+ * hydration mismatches from framer-motion's MotionValues.
  *
- * Trade-off: no SSR for the landing page content.
- * Mitigation: dark background shown instantly while JS loads (< 100ms).
+ * Performance: Server sends HTML with the skeleton immediately.
+ * JS bundle loads in parallel, then hydrates.
  */
 import dynamic from 'next/dynamic';
 
@@ -19,8 +16,26 @@ const LandingPage = dynamic(() => import('./page-client'), {
         <div style={{
             background: '#000000',
             minHeight: '100vh',
-            fontFamily: "'Inter', system-ui, sans-serif",
-        }} />
+            display: 'flex',
+            flexDirection: 'column',
+        }}>
+            {/* Skeleton nav */}
+            <div style={{
+                height: 56, borderBottom: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center',
+                padding: '0 32px', gap: 8,
+            }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(232,62,140,0.25)' }} />
+                <div style={{ width: 64, height: 14, borderRadius: 6, background: 'rgba(255,255,255,0.08)' }} />
+            </div>
+            {/* Skeleton hero */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 32 }}>
+                <div style={{ width: 320, height: 16, borderRadius: 8, background: 'rgba(255,255,255,0.05)' }} />
+                <div style={{ width: 480, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.07)' }} />
+                <div style={{ width: 400, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.04)' }} />
+                <div style={{ width: 200, height: 40, borderRadius: 10, background: 'rgba(232,62,140,0.15)', marginTop: 16 }} />
+            </div>
+        </div>
     ),
 });
 

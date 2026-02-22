@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, Suspense } from 'react';
 import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check, AlertTriangle } from 'lucide-react';
 
 /* ── SSR-safe mount guard ───────────────────

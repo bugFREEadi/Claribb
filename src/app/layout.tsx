@@ -1,9 +1,19 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
+
+// next/font/google → font is self-hosted at build time, zero render-blocking
+const inter = Inter({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700', '800'],
+    display: 'swap',
+    variable: '--font-inter',
+    preload: true,
+});
 
 export const metadata: Metadata = {
     title: 'Claribb — Multi-Agent Research Intelligence',
-    description: 'CLARIBB is a persistent, memory-driven AI research workspace that remembers everything across sessions, surfaces relevant context automatically, and deploys 5 specialized agents to think, search, challenge, connect, and detect conflicts on your behalf.',
+    description: 'Claribb is a persistent, memory-driven AI research workspace that remembers everything across sessions, surfaces relevant context automatically, and deploys 5 specialized agents to think, search, challenge, connect, and detect conflicts on your behalf.',
     keywords: ['AI research', 'knowledge management', 'RAG', 'research assistant', 'AI memory'],
     icons: {
         icon: '/favicon.svg',
@@ -18,17 +28,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en" className="dark" suppressHydrationWarning>
+        <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
             <head>
                 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-                    rel="stylesheet"
-                />
             </head>
-            <body className="antialiased" suppressHydrationWarning>{children}</body>
+            <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+                {children}
+            </body>
         </html>
     );
 }

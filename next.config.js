@@ -8,13 +8,14 @@ const nextConfig = {
         remotePatterns: [
             { protocol: 'https', hostname: '**' },
         ],
+        formats: ['image/avif', 'image/webp'],
     },
 
-    // Turbopack config for faster dev builds
-    experimental: {},
+    // Compress responses
+    compress: true,
 
-    // Silence the "punycode" deprecation warning from dependencies
-    webpack: (config, { isServer }) => {
+    // Webpack optimizations
+    webpack: (config, { isServer, dev }) => {
         if (!isServer) {
             config.resolve.fallback = {
                 ...config.resolve.fallback,
@@ -23,6 +24,33 @@ const nextConfig = {
                 tls: false,
             };
         }
+
+        // In production, split framer-motion into its own chunk
+        if (!dev && !isServer) {
+            config.optimization = {
+                ...config.optimization,
+                splitChunks: {
+                    ...config.optimization?.splitChunks,
+                    chunks: 'all',
+                    cacheGroups: {
+                        ...(config.optimization?.splitChunks?.cacheGroups || {}),
+                        framerMotion: {
+                            test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+                            name: 'framer-motion',
+                            chunks: 'all',
+                            priority: 20,
+                        },
+                        lucide: {
+                            test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+                            name: 'lucide',
+                            chunks: 'all',
+                            priority: 20,
+                        },
+                    },
+                },
+            };
+        }
+
         return config;
     },
 };
