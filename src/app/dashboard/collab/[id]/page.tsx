@@ -220,6 +220,20 @@ export default function ServerDetailPage() {
         const content = input.trim();
         setInput('');
         setSending(true);
+
+        // Optimistic update — show message immediately
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMsg: ChatMessage = {
+            id: tempId,
+            server_id: id,
+            user_id: currentUser.id,
+            user_name: currentUser.name,
+            role: 'user',
+            content,
+            created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+
         try {
             const headers = await getAuthHeaders();
             const res = await fetch(`/api/servers/${id}/messages`, {
@@ -227,14 +241,24 @@ export default function ServerDetailPage() {
                 headers,
                 body: JSON.stringify({ content, user_name: currentUser.name }),
             });
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                console.error('[sendMessage] error:', res.status, errData);
+            if (res.ok) {
+                const data = await res.json();
+                // Replace temp message with real one from DB
+                if (data.message) {
+                    setMessages(prev => prev.map(m => m.id === tempId ? data.message : m));
+                }
+            } else {
+                // Remove optimistic on failure
+                setMessages(prev => prev.filter(m => m.id !== tempId));
+                console.error('[sendMessage] error:', res.status);
             }
         } catch (err) {
+            setMessages(prev => prev.filter(m => m.id !== tempId));
             console.error('[sendMessage]', err);
         } finally {
             setSending(false);
+            // Fallback refresh to sync any missed realtime events
+            setTimeout(() => fetchMessages(), 1500);
         }
     };
 
@@ -245,17 +269,36 @@ export default function ServerDetailPage() {
         setAskingAI(true);
         setAiError(null);
 
+        // Optimistic update for user's question
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMsg: ChatMessage = {
+            id: tempId,
+            server_id: id,
+            user_id: currentUser.id,
+            user_name: currentUser.name,
+            role: 'user',
+            content: question,
+            created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+
         try {
             const headers = await getAuthHeaders();
 
-            // Send user message first via API route (admin bypass)
-            await fetch(`/api/servers/${id}/messages`, {
+            // Persist user message
+            const msgRes = await fetch(`/api/servers/${id}/messages`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ content: question, user_name: currentUser.name }),
             });
+            if (msgRes.ok) {
+                const data = await msgRes.json();
+                if (data.message) {
+                    setMessages(prev => prev.map(m => m.id === tempId ? data.message : m));
+                }
+            }
 
-            // Then ask AI
+            // Ask AI (returns AI message saved to DB)
             const res = await fetch(`/api/servers/${id}/chat`, {
                 method: 'POST',
                 headers,
@@ -266,16 +309,35 @@ export default function ServerDetailPage() {
                 }),
             });
 
-            if (!res.ok) {
+            if (res.ok) {
+                const aiData = await res.json();
+                // Immediately show AI response (temp ID, will be replaced by fetchMessages)
+                if (aiData.content) {
+                    const aiMsg: ChatMessage = {
+                        id: `ai_temp_${Date.now()}`,
+                        server_id: id,
+                        user_id: 'ai',
+                        user_name: 'Claribb AI',
+                        role: 'ai',
+                        content: aiData.content,
+                        created_at: new Date().toISOString(),
+                    };
+                    setMessages(prev => [...prev, aiMsg]);
+                    // Fetch real messages from DB (replaces temp IDs with real ones)
+                    setTimeout(() => fetchMessages(), 800);
+                }
+            } else {
                 const errData = await res.json().catch(() => ({}));
-                console.error('[askAI] API error:', res.status, errData);
                 setAiError(`AI error (${res.status}): ${errData.error || 'Unknown error'}`);
+                setTimeout(() => fetchMessages(), 500);
             }
         } catch (err) {
             console.error('[askAI]', err);
             setAiError('Failed to reach AI. Check your connection.');
         } finally {
             setAskingAI(false);
+            // Final refresh after AI completes — ensures AI message is visible
+            setTimeout(() => fetchMessages(), 2000);
         }
     };
 
