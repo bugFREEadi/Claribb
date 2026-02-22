@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Copy, Check, Hash, Globe, Lock, ArrowLeft, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 interface Server {
     id: string;
@@ -18,8 +18,9 @@ interface Server {
     created_at?: string;
 }
 
-export default function ServerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function ServerDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const router = useRouter();
     const [server, setServer] = useState<Server | null>(null);
     const [loading, setLoading] = useState(true);
