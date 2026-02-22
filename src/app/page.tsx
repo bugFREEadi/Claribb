@@ -1,12 +1,12 @@
+'use client';
 /**
- * Claribb Landing Page — server component entry point
+ * Claribb Landing Page — client wrapper
  *
- * page.tsx itself is a SERVER component (no 'use client').
- * The animated content is dynamically imported client-side to prevent
- * hydration mismatches from framer-motion's MotionValues.
+ * 'use client' is required because ssr:false in next/dynamic
+ * is only allowed inside Client Components (Next.js 15 rule).
  *
- * Performance: Server sends HTML with the skeleton immediately.
- * JS bundle loads in parallel, then hydrates.
+ * The animated landing page is dynamically imported to prevent
+ * hydration mismatches from framer-motion MotionValues / useScroll.
  */
 import dynamic from 'next/dynamic';
 
