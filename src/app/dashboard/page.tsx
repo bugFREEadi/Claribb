@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Plus, Brain, Loader2, BookOpen, Database, Network,
-    TrendingUp, ChevronRight, Sparkles, X, Layers,
+    ChevronRight, Sparkles, X, Layers,
     Zap, Link2, AlertTriangle, HelpCircle, RefreshCw,
     CheckCircle2
 } from 'lucide-react';
@@ -102,9 +102,6 @@ export default function DashboardPage() {
 
     const totalMemories = projects.reduce((sum, p) => sum + (p.memory_count || 0), 0);
     const totalSessions = projects.reduce((sum, p) => sum + (p.session_count || 0), 0);
-    const avgDepth = projects.length > 0
-        ? Math.min(100, Math.round(projects.reduce((sum, p) => sum + Math.min(p.depth_score || 0, 100), 0) / projects.length))
-        : 0;
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -161,13 +158,12 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="grid grid-cols-4 gap-4 mb-8"
+                className="grid grid-cols-3 gap-4 mb-8"
             >
                 {[
                     { label: 'Total Memories', value: totalMemories, icon: Database },
                     { label: 'Research Sessions', value: totalSessions, icon: BookOpen },
                     { label: 'Active Projects', value: projects.length, icon: Layers },
-                    { label: 'Avg Depth Score', value: `${avgDepth}/100`, icon: TrendingUp },
                 ].map(stat => {
                     const Icon = stat.icon;
                     return (
