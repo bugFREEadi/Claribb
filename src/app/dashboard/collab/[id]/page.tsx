@@ -116,9 +116,9 @@ export default function ServerDetailPage() {
 
     useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-    // Fetch initial messages via API route (admin client, bypasses RLS)
-    const fetchMessages = useCallback(async () => {
-        setLoadingMsgs(true);
+    // Fetch messages and MERGE with existing state (preserves optimistic temp messages)
+    const fetchMessages = useCallback(async (replace = false) => {
+        if (replace) setLoadingMsgs(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const headers: Record<string, string> = {};
@@ -126,13 +126,38 @@ export default function ServerDetailPage() {
             const res = await fetch(`/api/servers/${id}/messages?limit=100`, { headers });
             if (res.ok) {
                 const data = await res.json();
-                setMessages(data.messages || []);
+                const incoming: ChatMessage[] = data.messages || [];
+                if (replace) {
+                    setMessages(incoming);
+                } else {
+                    // Merge: keep existing messages, add any new from DB, drop temp IDs that now have real DB counterparts
+                    setMessages(prev => {
+                        const existingRealIds = new Set(incoming.map((m: ChatMessage) => m.id));
+                        // Remove temp messages that are duplicated in DB (matched by content+time proximity)
+                        const withoutStaleTemps = prev.filter(m => {
+                            if (!m.id.startsWith('temp_') && !m.id.startsWith('ai_temp_')) return true;
+                            // Keep temp if not yet in DB (no real match)
+                            return !incoming.some(r =>
+                                r.content === m.content &&
+                                r.user_id === m.user_id &&
+                                Math.abs(new Date(r.created_at).getTime() - new Date(m.created_at).getTime()) < 10000
+                            );
+                        });
+                        // Add new DB messages not already in state
+                        const stateIds = new Set(withoutStaleTemps.map(m => m.id));
+                        const newOnes = incoming.filter((m: ChatMessage) => !stateIds.has(m.id));
+                        if (newOnes.length === 0 && withoutStaleTemps.length === prev.length) return prev;
+                        return [...withoutStaleTemps, ...newOnes].sort(
+                            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                        );
+                    });
+                }
             }
         } catch { /* silent */ }
-        finally { setLoadingMsgs(false); }
+        finally { if (replace) setLoadingMsgs(false); }
     }, [id, supabase]);
 
-    useEffect(() => { fetchMessages(); }, [fetchMessages]);
+    useEffect(() => { fetchMessages(true); }, [fetchMessages]);
 
     // Supabase Realtime — chat messages (dedup by id using Set)
     useEffect(() => {
@@ -310,34 +335,17 @@ export default function ServerDetailPage() {
             });
 
             if (res.ok) {
-                const aiData = await res.json();
-                // Immediately show AI response (temp ID, will be replaced by fetchMessages)
-                if (aiData.content) {
-                    const aiMsg: ChatMessage = {
-                        id: `ai_temp_${Date.now()}`,
-                        server_id: id,
-                        user_id: 'ai',
-                        user_name: 'Claribb AI',
-                        role: 'ai',
-                        content: aiData.content,
-                        created_at: new Date().toISOString(),
-                    };
-                    setMessages(prev => [...prev, aiMsg]);
-                    // Fetch real messages from DB (replaces temp IDs with real ones)
-                    setTimeout(() => fetchMessages(), 800);
-                }
+                // Merge fetch — gets real AI message from DB, no temp ID jitter
+                await fetchMessages();
             } else {
                 const errData = await res.json().catch(() => ({}));
                 setAiError(`AI error (${res.status}): ${errData.error || 'Unknown error'}`);
-                setTimeout(() => fetchMessages(), 500);
             }
         } catch (err) {
             console.error('[askAI]', err);
             setAiError('Failed to reach AI. Check your connection.');
         } finally {
             setAskingAI(false);
-            // Final refresh after AI completes — ensures AI message is visible
-            setTimeout(() => fetchMessages(), 2000);
         }
     };
 
