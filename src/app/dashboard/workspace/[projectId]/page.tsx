@@ -1096,291 +1096,295 @@ export default function WorkspacePage() {
                 </div>
             )}
 
-            {/* ── CENTER: Chat ── */}
-            <div className="flex-1 flex flex-col min-w-0">
-                {/* ── HEADER — single clean row ── */}
-                <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{
-                    borderColor: 'rgba(255,255,255,0.05)',
-                    background: 'rgba(6,6,8,0.9)',
-                    backdropFilter: 'blur(12px)',
-                }}>
-                    {/* Left — back + project name */}
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => router.push('/dashboard')}
-                            className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
-                            style={{ color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
-                            title="Back to dashboard">
-                            <ChevronLeft className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setShowSessionSidebar(s => !s)}
-                            className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
-                            style={{ color: showSessionSidebar ? '#A78BD4' : 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
-                            title="Session history">
-                            <BookOpen className="w-3.5 h-3.5" />
-                        </button>
-                        <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{
-                                background: streaming
-                                    ? 'linear-gradient(135deg, #E83E8C, #A78BD4)'
-                                    : 'linear-gradient(135deg, rgba(232,62,140,0.25), rgba(167,139,212,0.15))',
-                                boxShadow: streaming ? '0 0 16px rgba(232,62,140,0.5)' : 'none',
-                                transition: 'all 0.4s',
-                            }}>
-                                <Brain className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <h1 className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{projectName}</h1>
-                            {streaming && (
-                                <div className="flex items-center gap-1">
-                                    {['Recall', 'Explorer', 'Critique', 'Connector'].map((a, i) => (
-                                        <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full" style={{
-                                            background: i === agentIndex ? 'rgba(232,62,140,0.2)' : 'rgba(255,255,255,0.04)',
-                                            color: i === agentIndex ? '#E83E8C' : 'rgba(255,255,255,0.25)',
-                                            border: `1px solid ${i === agentIndex ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.06)'}`,
-                                            transition: 'all 0.3s',
-                                        }}>{a}</span>
-                                    ))}
+            {/* ── CENTER + RIGHT: shared flex row so panels get h-full correctly ── */}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+
+                {/* ── CENTER: Chat ── */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    {/* ── HEADER — single clean row ── */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{
+                        borderColor: 'rgba(255,255,255,0.05)',
+                        background: 'rgba(6,6,8,0.9)',
+                        backdropFilter: 'blur(12px)',
+                    }}>
+                        {/* Left — back + project name */}
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => router.push('/dashboard')}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
+                                style={{ color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
+                                title="Back to dashboard">
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => setShowSessionSidebar(s => !s)}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/5"
+                                style={{ color: showSessionSidebar ? '#A78BD4' : 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.06)' }}
+                                title="Session history">
+                                <BookOpen className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{
+                                    background: streaming
+                                        ? 'linear-gradient(135deg, #E83E8C, #A78BD4)'
+                                        : 'linear-gradient(135deg, rgba(232,62,140,0.25), rgba(167,139,212,0.15))',
+                                    boxShadow: streaming ? '0 0 16px rgba(232,62,140,0.5)' : 'none',
+                                    transition: 'all 0.4s',
+                                }}>
+                                    <Brain className="w-3.5 h-3.5 text-white" />
                                 </div>
-                            )}
+                                <h1 className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{projectName}</h1>
+                                {streaming && (
+                                    <div className="flex items-center gap-1">
+                                        {['Recall', 'Explorer', 'Critique', 'Connector'].map((a, i) => (
+                                            <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full" style={{
+                                                background: i === agentIndex ? 'rgba(232,62,140,0.2)' : 'rgba(255,255,255,0.04)',
+                                                color: i === agentIndex ? '#E83E8C' : 'rgba(255,255,255,0.25)',
+                                                border: `1px solid ${i === agentIndex ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.06)'}`,
+                                                transition: 'all 0.3s',
+                                            }}>{a}</span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right — compact icon buttons */}
+                        <div className="flex items-center gap-1.5">
+                            {/* Critique toggle */}
+                            <button onClick={() => setCritiqueMode(c => !c)}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: critiqueMode ? 'rgba(232,62,140,0.15)' : 'rgba(255,255,255,0.04)',
+                                    border: critiqueMode ? '1px solid rgba(232,62,140,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                                    color: critiqueMode ? '#E83E8C' : 'rgba(255,255,255,0.35)',
+                                }}
+                                title={`Critique mode ${critiqueMode ? 'ON' : 'OFF'}`}>
+                                <Shield className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Steelman */}
+                            <button onClick={() => setSidePanel(p => p === 'steelman' ? null : 'steelman')}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: sidePanel === 'steelman' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${sidePanel === 'steelman' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                    color: sidePanel === 'steelman' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Steelman arguments">
+                                <Sword className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Serendipity */}
+                            <button onClick={() => setSidePanel(p => p === 'serendipity' ? null : 'serendipity')}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: sidePanel === 'serendipity' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${sidePanel === 'serendipity' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                    color: sidePanel === 'serendipity' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Serendipity — random connections">
+                                <Shuffle className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Hypotheses */}
+                            <button onClick={() => { setShowHypotheses(true); generateHypotheses(); }}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    color: 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Generate Hypotheses">
+                                <Lightbulb className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Deep Research */}
+                            <button onClick={() => { setShowDeepResearch(true); setDrQuery(''); setDrResult(null); setDrProgress(null); }}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    color: 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Deep Research">
+                                <Search className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Export Brief */}
+                            <button onClick={() => { setShowBrief(true); generateBrief(); }}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    color: 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Export Research Brief">
+                                <FileText className="w-3.5 h-3.5" />
+                            </button>
+
+                            <div className="w-px h-5 mx-1" style={{ background: 'rgba(255,255,255,0.07)' }} />
+
+                            {/* CLARIBB Noticed */}
+                            <button onClick={() => setSidePanel(p => p === 'noticed' ? null : 'noticed')}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105 relative"
+                                style={{
+                                    background: sidePanel === 'noticed' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${sidePanel === 'noticed' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                    color: sidePanel === 'noticed' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
+                                }}
+                                title="CLARIBB Noticed">
+                                <Eye className="w-3.5 h-3.5" />
+                                {sageNotices.length > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }} animate={{ scale: 1 }}
+                                        className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center"
+                                        style={{ background: '#E83E8C', color: '#fff' }}>
+                                        {sageNotices.length}
+                                    </motion.span>
+                                )}
+                            </button>
+
+                            {/* Knowledge Graph */}
+                            <button onClick={() => router.push(`/dashboard/graph/${projectId}`)}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    color: 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Knowledge Graph">
+                                <Network className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Memory Bank */}
+                            <button onClick={() => setSidePanel(p => p === 'memory' ? null : 'memory')}
+                                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
+                                style={{
+                                    background: sidePanel === 'memory' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${sidePanel === 'memory' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                                    color: sidePanel === 'memory' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
+                                }}
+                                title="Memory Bank">
+                                <Database className="w-3.5 h-3.5" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* Right — compact icon buttons */}
-                    <div className="flex items-center gap-1.5">
-                        {/* Critique toggle */}
-                        <button onClick={() => setCritiqueMode(c => !c)}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: critiqueMode ? 'rgba(232,62,140,0.15)' : 'rgba(255,255,255,0.04)',
-                                border: critiqueMode ? '1px solid rgba(232,62,140,0.4)' : '1px solid rgba(255,255,255,0.07)',
-                                color: critiqueMode ? '#E83E8C' : 'rgba(255,255,255,0.35)',
-                            }}
-                            title={`Critique mode ${critiqueMode ? 'ON' : 'OFF'}`}>
-                            <Shield className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Steelman */}
-                        <button onClick={() => setSidePanel(p => p === 'steelman' ? null : 'steelman')}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: sidePanel === 'steelman' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
-                                border: `1px solid ${sidePanel === 'steelman' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
-                                color: sidePanel === 'steelman' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Steelman arguments">
-                            <Sword className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Serendipity */}
-                        <button onClick={() => setSidePanel(p => p === 'serendipity' ? null : 'serendipity')}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: sidePanel === 'serendipity' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
-                                border: `1px solid ${sidePanel === 'serendipity' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
-                                color: sidePanel === 'serendipity' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Serendipity — random connections">
-                            <Shuffle className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Hypotheses */}
-                        <button onClick={() => { setShowHypotheses(true); generateHypotheses(); }}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.07)',
-                                color: 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Generate Hypotheses">
-                            <Lightbulb className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Deep Research */}
-                        <button onClick={() => { setShowDeepResearch(true); setDrQuery(''); setDrResult(null); setDrProgress(null); }}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.07)',
-                                color: 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Deep Research">
-                            <Search className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Export Brief */}
-                        <button onClick={() => { setShowBrief(true); generateBrief(); }}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.07)',
-                                color: 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Export Research Brief">
-                            <FileText className="w-3.5 h-3.5" />
-                        </button>
-
-                        <div className="w-px h-5 mx-1" style={{ background: 'rgba(255,255,255,0.07)' }} />
-
-                        {/* CLARIBB Noticed */}
-                        <button onClick={() => setSidePanel(p => p === 'noticed' ? null : 'noticed')}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105 relative"
-                            style={{
-                                background: sidePanel === 'noticed' ? 'rgba(232,62,140,0.12)' : 'rgba(255,255,255,0.04)',
-                                border: `1px solid ${sidePanel === 'noticed' ? 'rgba(232,62,140,0.35)' : 'rgba(255,255,255,0.07)'}`,
-                                color: sidePanel === 'noticed' ? '#E83E8C' : 'rgba(255,255,255,0.35)',
-                            }}
-                            title="CLARIBB Noticed">
-                            <Eye className="w-3.5 h-3.5" />
-                            {sageNotices.length > 0 && (
-                                <motion.span
-                                    initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                    className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center"
-                                    style={{ background: '#E83E8C', color: '#fff' }}>
-                                    {sageNotices.length}
-                                </motion.span>
-                            )}
-                        </button>
-
-                        {/* Knowledge Graph */}
-                        <button onClick={() => router.push(`/dashboard/graph/${projectId}`)}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.07)',
-                                color: 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Knowledge Graph">
-                            <Network className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Memory Bank */}
-                        <button onClick={() => setSidePanel(p => p === 'memory' ? null : 'memory')}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-105"
-                            style={{
-                                background: sidePanel === 'memory' ? 'rgba(167,139,212,0.12)' : 'rgba(255,255,255,0.04)',
-                                border: `1px solid ${sidePanel === 'memory' ? 'rgba(167,139,212,0.35)' : 'rgba(255,255,255,0.07)'}`,
-                                color: sidePanel === 'memory' ? '#A78BD4' : 'rgba(255,255,255,0.35)',
-                            }}
-                            title="Memory Bank">
-                            <Database className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-8 py-8" style={{ background: '#09090b' }}>
-                    {messages.length === 0 && (
-                        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center justify-center h-full text-center px-6">
-                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{
-                                background: 'linear-gradient(135deg, rgba(232,62,140,0.15), rgba(167,139,212,0.1))',
-                                border: '1px solid rgba(232,62,140,0.2)',
-                                boxShadow: '0 0 40px rgba(232,62,140,0.1)',
-                            }}>
-                                <Brain className="w-7 h-7" style={{ color: '#E83E8C' }} />
-                            </div>
-                            <h2 className="text-xl font-bold mb-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Start your research</h2>
-                            <p className="text-sm max-w-xs mx-auto mb-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                                Ask anything. CLARIBB remembers across sessions and surfaces hidden connections.
-                            </p>
-                            <div className="flex flex-col gap-2 w-full max-w-sm">
-                                {STARTER_PROMPTS.map(prompt => (
-                                    <button key={prompt} onClick={() => { setInput(prompt); textareaRef.current?.focus(); }}
-                                        className="px-4 py-3 rounded-xl text-left text-sm transition-all hover:scale-[1.01]"
-                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>
-                                        &ldquo;{prompt}&rdquo;
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {messages.map(msg => <ChatBubble key={msg.id} msg={msg} />)}
-
-                    {/* 🔥 FEATURE 1: Live Chain of Thought — shows during streaming */}
-                    <AnimatePresence>
-                        {(isThinking || thinkingSteps.length > 0) && streaming && (
-                            <ChainOfThought steps={thinkingSteps} isThinking={isThinking} />
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto px-8 py-8" style={{ background: '#09090b' }}>
+                        {messages.length === 0 && (
+                            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center justify-center h-full text-center px-6">
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{
+                                    background: 'linear-gradient(135deg, rgba(232,62,140,0.15), rgba(167,139,212,0.1))',
+                                    border: '1px solid rgba(232,62,140,0.2)',
+                                    boxShadow: '0 0 40px rgba(232,62,140,0.1)',
+                                }}>
+                                    <Brain className="w-7 h-7" style={{ color: '#E83E8C' }} />
+                                </div>
+                                <h2 className="text-xl font-bold mb-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Start your research</h2>
+                                <p className="text-sm max-w-xs mx-auto mb-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                    Ask anything. CLARIBB remembers across sessions and surfaces hidden connections.
+                                </p>
+                                <div className="flex flex-col gap-2 w-full max-w-sm">
+                                    {STARTER_PROMPTS.map(prompt => (
+                                        <button key={prompt} onClick={() => { setInput(prompt); textareaRef.current?.focus(); }}
+                                            className="px-4 py-3 rounded-xl text-left text-sm transition-all hover:scale-[1.01]"
+                                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>
+                                            &ldquo;{prompt}&rdquo;
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
                         )}
-                    </AnimatePresence>
 
-                    <div ref={chatEndRef} />
-                </div>
+                        {messages.map(msg => <ChatBubble key={msg.id} msg={msg} />)}
 
-                {/* Input */}
-                <div className="shrink-0 px-5 pb-5 pt-3" style={{ background: 'var(--bg-primary)' }}>
-                    <div className="relative flex items-end gap-2 px-4 py-3 rounded-2xl" style={{
-                        background: 'rgba(15,15,18,0.9)',
-                        border: streaming ? '1px solid rgba(232,62,140,0.5)' : '1px solid rgba(232,62,140,0.22)',
-                        boxShadow: streaming ? '0 0 24px rgba(232,62,140,0.15)' : '0 0 0 3px rgba(232,62,140,0.04)',
-                        backdropFilter: 'blur(16px)',
-                        transition: 'all 0.3s',
-                    }}>
-                        {/* Memory Preview indicator */}
+                        {/* 🔥 FEATURE 1: Live Chain of Thought — shows during streaming */}
                         <AnimatePresence>
-                            {memoryPreview && !streaming && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 4 }}
-                                    className="absolute -top-8 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium pointer-events-none"
-                                    style={{ background: 'rgba(167,139,212,0.15)', border: '1px solid rgba(167,139,212,0.3)', color: '#A78BD4' }}
-                                >
-                                    <Brain className="w-2.5 h-2.5" />
-                                    {memoryPreview.count} memories match · {Math.round(memoryPreview.confidence * 100)}% relevance
-                                </motion.div>
+                            {(isThinking || thinkingSteps.length > 0) && streaming && (
+                                <ChainOfThought steps={thinkingSteps} isThinking={isThinking} />
                             )}
                         </AnimatePresence>
 
-                        <textarea
-                            ref={textareaRef}
-                            value={input}
-                            onChange={autoResize}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Ask CLARIBB anything about your research…"
-                            disabled={streaming}
-                            rows={1}
-                            className="flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed"
-                            style={{ color: 'var(--text-primary)', maxHeight: '160px', minHeight: '24px', caretColor: '#E83E8C' }}
-                        />
+                        <div ref={chatEndRef} />
+                    </div>
 
-                        {/* Right side controls — no separate pink square */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            {voiceSupported && (
-                                <button
-                                    onClick={voiceActive ? stopVoice : startVoice}
-                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
-                                    style={voiceActive
-                                        ? { background: 'rgba(232,62,140,0.2)', border: '1px solid rgba(232,62,140,0.5)', color: '#E83E8C' }
-                                        : { background: 'transparent', border: '1px solid transparent', color: 'rgba(255,255,255,0.25)' }
-                                    }
-                                    title={voiceActive ? 'Stop listening' : 'Speak your question'}
-                                >
-                                    {voiceActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                                </button>
-                            )}
-                            {streaming ? (
-                                <button onClick={() => abortRef.current?.abort()}
-                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                                    style={{ background: 'rgba(232,62,140,0.12)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
-                                    <StopCircle className="w-3.5 h-3.5" />
-                                </button>
-                            ) : (
-                                <button onClick={sendMessage} disabled={!input.trim()}
-                                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110 disabled:opacity-25"
-                                    style={{
-                                        background: input.trim() ? 'rgba(232,62,140,0.15)' : 'transparent',
-                                        border: `1px solid ${input.trim() ? 'rgba(232,62,140,0.4)' : 'transparent'}`,
-                                        color: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.2)',
-                                    }}>
-                                    <Send className="w-3.5 h-3.5" />
-                                </button>
-                            )}
+                    {/* Input */}
+                    <div className="shrink-0 px-5 pb-5 pt-3" style={{ background: 'var(--bg-primary)' }}>
+                        <div className="relative flex items-end gap-2 px-4 py-3 rounded-2xl" style={{
+                            background: 'rgba(15,15,18,0.9)',
+                            border: streaming ? '1px solid rgba(232,62,140,0.5)' : '1px solid rgba(232,62,140,0.22)',
+                            boxShadow: streaming ? '0 0 24px rgba(232,62,140,0.15)' : '0 0 0 3px rgba(232,62,140,0.04)',
+                            backdropFilter: 'blur(16px)',
+                            transition: 'all 0.3s',
+                        }}>
+                            {/* Memory Preview indicator */}
+                            <AnimatePresence>
+                                {memoryPreview && !streaming && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 4 }}
+                                        className="absolute -top-8 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium pointer-events-none"
+                                        style={{ background: 'rgba(167,139,212,0.15)', border: '1px solid rgba(167,139,212,0.3)', color: '#A78BD4' }}
+                                    >
+                                        <Brain className="w-2.5 h-2.5" />
+                                        {memoryPreview.count} memories match · {Math.round(memoryPreview.confidence * 100)}% relevance
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <textarea
+                                ref={textareaRef}
+                                value={input}
+                                onChange={autoResize}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Ask CLARIBB anything about your research…"
+                                disabled={streaming}
+                                rows={1}
+                                className="flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed"
+                                style={{ color: 'var(--text-primary)', maxHeight: '160px', minHeight: '24px', caretColor: '#E83E8C' }}
+                            />
+
+                            {/* Right side controls — no separate pink square */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {voiceSupported && (
+                                    <button
+                                        onClick={voiceActive ? stopVoice : startVoice}
+                                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${voiceActive ? 'animate-pulse' : 'hover:scale-105'}`}
+                                        style={voiceActive
+                                            ? { background: 'rgba(232,62,140,0.2)', border: '1px solid rgba(232,62,140,0.5)', color: '#E83E8C' }
+                                            : { background: 'transparent', border: '1px solid transparent', color: 'rgba(255,255,255,0.25)' }
+                                        }
+                                        title={voiceActive ? 'Stop listening' : 'Speak your question'}
+                                    >
+                                        {voiceActive ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                                    </button>
+                                )}
+                                {streaming ? (
+                                    <button onClick={() => abortRef.current?.abort()}
+                                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+                                        style={{ background: 'rgba(232,62,140,0.12)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
+                                        <StopCircle className="w-3.5 h-3.5" />
+                                    </button>
+                                ) : (
+                                    <button onClick={sendMessage} disabled={!input.trim()}
+                                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110 disabled:opacity-25"
+                                        style={{
+                                            background: input.trim() ? 'rgba(232,62,140,0.15)' : 'transparent',
+                                            border: `1px solid ${input.trim() ? 'rgba(232,62,140,0.4)' : 'transparent'}`,
+                                            color: input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.2)',
+                                        }}>
+                                        <Send className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
+
+
+                    {/* ── CENTER section closes here, RIGHT PANELS follow as flex siblings ── */}
                 </div>
-
-
-                {/* ── CENTER section closes here, outer div continues */}
 
                 {/* ── RIGHT PANELS ── */}
                 <AnimatePresence>
