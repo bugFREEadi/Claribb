@@ -436,93 +436,32 @@ export default function PricingPage() {
                     </div>
                 </div>
 
-                {/* ── Competitive Landscape Table ── */}
-                <div style={{ maxWidth: 1200, margin: '64px auto 0', padding: '0 24px 80px' }}>
-                    <div style={{ marginBottom: 32 }}>
-                        <div style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px',
-                            borderRadius: 100, border: '1px solid rgba(232,62,140,0.25)',
-                            background: 'rgba(232,62,140,0.07)', marginBottom: 16,
-                        }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#E83E8C', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Competitive Landscape</span>
-                        </div>
-                        <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', margin: '0 0 10px' }}>
-                            Claribb occupies a category no competitor has entered
+                {/* Compare section */}
+                <div style={{ maxWidth: 900, margin: '80px auto', padding: '0 24px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                        <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', margin: '0 0 12px' }}>
+                            Every plan runs all 5 agents
                         </h2>
-                        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.7, maxWidth: 680 }}>
-                            <strong style={{ color: 'rgba(255,255,255,0.7)' }}>Personal Research Intelligence</strong> — not a search engine, not a chatbot, not a note-taking app.
+                        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+                            Recall · Explorer · Critique · Connector · Conflict Detector
                         </p>
                     </div>
-
-                    {/* Table */}
-                    <div style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                    <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.015)', width: '32%' }}>Feature</th>
-                                    {['Claribb', 'ChatGPT', 'Perplexity', 'Notion AI', 'Obsidian+AI'].map((name, i) => (
-                                        <th key={name} style={{
-                                            padding: '14px 12px', textAlign: 'center', fontSize: 12, fontWeight: 700,
-                                            color: i === 0 ? '#E83E8C' : 'rgba(255,255,255,0.45)',
-                                            background: i === 0 ? 'rgba(232,62,140,0.06)' : 'rgba(255,255,255,0.015)',
-                                            borderLeft: i === 0 ? '1px solid rgba(232,62,140,0.18)' : '1px solid rgba(255,255,255,0.05)',
-                                            borderRight: i === 0 ? '1px solid rgba(232,62,140,0.18)' : 'none',
-                                            position: 'relative',
-                                        }}>
-                                            {i === 0 && (
-                                                <div style={{
-                                                    position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
-                                                    background: '#E83E8C', color: '#fff', fontSize: 8, fontWeight: 800,
-                                                    padding: '2px 8px', borderRadius: '0 0 6px 6px', letterSpacing: '0.08em', whiteSpace: 'nowrap',
-                                                }}>US</div>
-                                            )}
-                                            {name}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[
-                                    { feature: 'Persistent memory across sessions', cells: [{ icon: '✅', note: 'Always' }, { icon: '⚠️', note: 'Paid, limited' }, { icon: '❌' }, { icon: '❌' }, { icon: '⚠️', note: 'Manual' }] },
-                                    { feature: 'Multi-agent parallel reasoning', cells: [{ icon: '✅', note: '5 agents' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }] },
-                                    { feature: 'Semantic memory search (RAG)', cells: [{ icon: '✅', note: 'pgvector' }, { icon: '❌' }, { icon: '⚠️', note: 'Web only' }, { icon: '❌' }, { icon: '⚠️', note: 'Plugin' }] },
-                                    { feature: 'Auto knowledge graph', cells: [{ icon: '✅' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '⚠️', note: 'Manual' }] },
-                                    { feature: 'Conflict detection & steel manning', cells: [{ icon: '✅' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }] },
-                                    { feature: 'Belief evolution tracking', cells: [{ icon: '✅' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }] },
-                                    { feature: 'Research trajectory prediction', cells: [{ icon: '✅' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }] },
-                                    { feature: '100% free-tier AI stack', cells: [{ icon: '✅' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }, { icon: '❌' }] },
-                                ].map((row, ri) => (
-                                    <tr key={ri} style={{ borderBottom: ri < 7 ? '1px solid rgba(255,255,255,0.05)' : 'none', background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                                        <td style={{ padding: '13px 20px', fontSize: 13, color: 'rgba(255,255,255,0.72)', fontWeight: 500, lineHeight: 1.4 }}>{row.feature}</td>
-                                        {(row.cells as Array<{ icon: string; note?: string }>).map((cell, ci) => (
-                                            <td key={ci} style={{
-                                                padding: '13px 12px', textAlign: 'center',
-                                                background: ci === 0 ? 'rgba(232,62,140,0.03)' : 'transparent',
-                                                borderLeft: ci === 0 ? '1px solid rgba(232,62,140,0.12)' : '1px solid rgba(255,255,255,0.03)',
-                                                borderRight: ci === 0 ? '1px solid rgba(232,62,140,0.12)' : 'none',
-                                            }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                                                    <span style={{ fontSize: 15 }}>{cell.icon}</span>
-                                                    {cell.note && <span style={{ fontSize: 10, fontWeight: 500, color: ci === 0 ? '#E83E8C' : 'rgba(255,255,255,0.3)' }}>{cell.note}</span>}
-                                                </div>
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Footnote */}
-                    <div style={{
-                        marginTop: 20, padding: '14px 20px', borderRadius: 10,
-                        background: 'rgba(167,139,212,0.06)', border: '1px solid rgba(167,139,212,0.18)',
-                        display: 'flex', alignItems: 'flex-start', gap: 10,
-                    }}>
-                        <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, margin: 0 }}>
-                            The closest alternative would be <strong style={{ color: 'rgba(255,255,255,0.7)' }}>Perplexity + Notion AI + a PhD advisor with perfect recall</strong> — combined into one product. Claribb does all three, without the cost or complexity.
-                        </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                        {[
+                            { name: 'Recall Agent', desc: 'Semantic memory search across all your sessions', color: '#6366f1' },
+                            { name: 'Explorer Agent', desc: 'Live web research when memory has gaps', color: '#06b6d4' },
+                            { name: 'Critique Agent', desc: "Devil's advocate — surfaces your blind spots", color: '#f59e0b' },
+                            { name: 'Connector Agent', desc: 'Cross-topic pattern discovery', color: '#10b981' },
+                            { name: 'Conflict Detector', desc: 'Catches contradictions in your knowledge base', color: '#f43f5e' },
+                        ].map((a) => (
+                            <div key={a.name} style={{
+                                padding: '18px 20px', borderRadius: 14,
+                                background: `${a.color}08`, border: `1px solid ${a.color}25`,
+                            }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: a.color, marginBottom: 5 }}>{a.name}</div>
+                                <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{a.desc}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
