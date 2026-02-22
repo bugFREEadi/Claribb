@@ -116,34 +116,40 @@ export default function ServerDetailPage() {
 
     useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-    // Fetch initial messages
+    // Fetch initial messages via API route (admin client, bypasses RLS)
     const fetchMessages = useCallback(async () => {
         setLoadingMsgs(true);
         try {
-            const { data } = await supabase
-                .from('server_messages')
-                .select('*')
-                .eq('server_id', id)
-                .order('created_at', { ascending: true })
-                .limit(100);
-            setMessages(data || []);
+            const { data: { session } } = await supabase.auth.getSession();
+            const headers: Record<string, string> = {};
+            if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+            const res = await fetch(`/api/servers/${id}/messages?limit=100`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data.messages || []);
+            }
         } catch { /* silent */ }
         finally { setLoadingMsgs(false); }
     }, [id, supabase]);
 
     useEffect(() => { fetchMessages(); }, [fetchMessages]);
 
-    // Supabase Realtime — chat messages
+    // Supabase Realtime — chat messages (dedup by id using Set)
     useEffect(() => {
+        const seenIds = new Set<string>();
+
         const channel = supabase
-            .channel(`server_chat_${id}`)
+            .channel(`server_chat_${id}_${Date.now()}`)
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'server_messages', filter: `server_id=eq.${id}` },
                 (payload) => {
                     const newMsg = payload.new as ChatMessage;
+                    if (seenIds.has(newMsg.id)) return;
+                    seenIds.add(newMsg.id);
                     setMessages(prev => {
-                        if (prev.find(m => m.id === newMsg.id)) return prev;
+                        // also check existing state to be extra safe
+                        if (prev.some(m => m.id === newMsg.id)) return prev;
                         return [...prev, newMsg];
                     });
                 }
