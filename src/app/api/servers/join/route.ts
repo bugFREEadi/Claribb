@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminSupabaseClient } from '@/lib/supabase/server';
 
-// POST /api/servers/join  { invite_code: "CLR-XXXXXX" }
 export async function POST(req: NextRequest) {
     try {
+        // Verify user
         const supabase = await createServerSupabaseClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { data: { user }, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { invite_code } = await req.json();
         if (!invite_code) return NextResponse.json({ error: 'invite_code required' }, { status: 400 });
 
-        // Find the server
-        const { data: server, error: findErr } = await supabase
+        const admin = createAdminSupabaseClient();
+
+        // Find server by invite code
+        const { data: server, error: findErr } = await admin
             .from('research_servers')
             .select('*')
-            .eq('invite_code', (invite_code as string).toUpperCase())
+            .eq('invite_code', (invite_code as string).trim().toUpperCase())
             .single();
 
         if (findErr || !server) {
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if already a member
-        const { data: existing } = await supabase
+        const { data: existing } = await admin
             .from('server_members')
             .select('id')
             .eq('server_id', server.id)
@@ -34,8 +36,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ server, already_member: true });
         }
 
-        // Insert membership
-        const { error: joinErr } = await supabase
+        // Join
+        const { error: joinErr } = await admin
             .from('server_members')
             .insert({ server_id: server.id, user_id: user.id, role: 'member' });
 
@@ -44,6 +46,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ server, joined: true });
     } catch (err) {
         console.error('[servers/join POST]', err);
-        return NextResponse.json({ error: 'Failed to join server' }, { status: 500 });
+        return NextResponse.json({ error: `Failed to join: ${String(err)}` }, { status: 500 });
     }
 }
