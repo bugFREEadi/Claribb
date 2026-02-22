@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -13,7 +13,7 @@ import type { Project, ResearchDigest } from '@/types';
 import ProjectCard from '@/components/dashboard/ProjectCard';
 import CreateProjectModal from '@/components/dashboard/CreateProjectModal';
 
-export default function DashboardPage() {
+function DashboardContent() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -496,5 +496,18 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
+                <Loader2 size={20} style={{ color: '#444', animation: 'spin 1s linear infinite' }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }
