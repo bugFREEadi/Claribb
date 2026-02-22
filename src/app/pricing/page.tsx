@@ -17,8 +17,12 @@ interface RazorpayOptions {
     name: string;
     description: string;
     image?: string;
-    order_id?: string;
-    handler: (response: { razorpay_payment_id: string }) => void;
+    order_id: string;
+    handler: (response: {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+        razorpay_signature: string;
+    }) => void;
     prefill?: { name?: string; email?: string };
     theme?: { color?: string };
     modal?: { ondismiss?: () => void };
@@ -195,19 +199,55 @@ export default function PricingPage() {
             const loaded = await loadRazorpay();
             if (!loaded) { showToast('Payment gateway failed to load. Please try again.'); return; }
 
-            const discountedINR = billingCycle === 'annual'
-                ? Math.round(plan.priceINR * 10) // 2 months free
-                : plan.priceINR;
+            const billingKey = billingCycle === 'annual' ? 'annual' : 'monthly';
 
+            // Step 1: Create order server-side
+            const orderRes = await fetch('/api/payments/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId: plan.id, billingCycle: billingKey }),
+            });
+
+            if (!orderRes.ok) {
+                const err = await orderRes.json().catch(() => ({}));
+                showToast(err.error || 'Could not create order. Please try again.');
+                return;
+            }
+
+            const { orderId, amount, currency, key } = await orderRes.json();
+
+            // Step 2: Open Razorpay checkout with real order_id
             const options: RazorpayOptions = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_placeholder',
-                amount: discountedINR * 100, // paise
-                currency: 'INR',
+                key: key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+                amount,
+                currency,
                 name: 'Claribb',
                 description: `${plan.name} Plan — ${billingCycle === 'annual' ? 'Annual' : 'Monthly'}`,
                 image: '/favicon.svg',
-                handler: (response) => {
-                    showToast(`✅ Payment successful! ID: ${response.razorpay_payment_id}. Your ${plan.name} plan is now active.`);
+                order_id: orderId,
+                handler: async (response) => {
+                    // Step 3: Verify payment signature server-side
+                    try {
+                        const verifyRes = await fetch('/api/payments/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                planId: plan.id,
+                                billingCycle: billingKey,
+                            }),
+                        });
+                        if (verifyRes.ok) {
+                            showToast(`✅ Payment successful! Welcome to ${plan.name} plan.`);
+                        } else {
+                            const errData = await verifyRes.json().catch(() => ({}));
+                            showToast(`Payment received but verification failed: ${errData.error || 'Please contact support.'}`);
+                        }
+                    } catch {
+                        showToast('Payment received. Please refresh to see your updated plan.');
+                    }
                 },
                 prefill: {},
                 theme: { color: plan.color },
@@ -215,6 +255,7 @@ export default function PricingPage() {
                     ondismiss: () => setPaying(null),
                 },
             };
+
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch {
