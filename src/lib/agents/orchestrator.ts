@@ -364,7 +364,7 @@ export async function orchestrate(input: OrchestratorInput): Promise<Orchestrato
 
     // Add memory context
     if (recallResult.memories.length > 0) {
-        contextParts.push('=== YOUR RESEARCH MEMORY (Retrieved) ===');
+        contextParts.push('=== RESEARCH MEMORY (from your knowledge graph) ===');
         recallResult.memories.forEach((m, i) => {
             contextParts.push(
                 `[Memory ${i + 1}] Source: ${m.source_label} | Relevance: ${((m.similarity ?? 0) * 100).toFixed(0)}%\n${m.content}`
@@ -372,12 +372,12 @@ export async function orchestrate(input: OrchestratorInput): Promise<Orchestrato
         });
     }
 
-    // Add web search if triggered
+    // Add web search if triggered — label as [Web N] not Memory
     if (explorerResult.triggered && explorerResult.summary) {
-        contextParts.push('\n=== WEB RESEARCH (Memory Gap Detected) ===');
+        contextParts.push('\n=== WEB SEARCH RESULTS (fetched because memory gap was detected) ===');
         contextParts.push(explorerResult.summary);
-        explorerResult.sources.forEach((s: { title: string; snippet: string; url: string }) => {
-            contextParts.push(`Source: ${s.title} — ${s.snippet}`);
+        explorerResult.sources.forEach((s: { title: string; snippet: string; url: string }, i: number) => {
+            contextParts.push(`[Web ${i + 1}] ${s.title} — ${s.snippet}`);
         });
     }
 
@@ -410,25 +410,23 @@ export async function orchestrate(input: OrchestratorInput): Promise<Orchestrato
 
 // Build the final synthesis prompt
 export function buildSystemPrompt(contextBundle: string): string {
-    return `You are CLARIBB, a multi-agent AI research intelligence system. You have access to the user's personal research memory, which has been carefully retrieved based on their query.
+    return `You are CLARIBB, a multi-agent AI research intelligence system. You have access to the user's personal research memory, retrieved based on their query.
 
 CORE RULES:
-- Always ground your responses in the retrieved memory first
-- Cite which memory source your information comes from using [Memory N] references
-- If memory is insufficient, acknowledge the gap and use general knowledge
-- Be intellectually rigorous — this is for serious research work
-- Provide deep, analytical responses — not surface summaries
-- When you notice connections between ideas, highlight them explicitly
+- Ground your responses in the retrieved memory first when relevant
+- When citing from research memory, use [Memory N] references
+- When citing from web search results, use [Web N] references — these are NOT memories, they are live web results fetched to fill gaps
+- If neither memory nor web results are relevant, answer from general knowledge and be honest about it
+- Be intellectually rigorous — deep, analytical responses, not surface summaries
+- When you notice connections between ideas, highlight them
 
-LANGUAGE DETECTION — CRITICAL:
-- Detect the language the user is writing in and ALWAYS reply in the SAME language/style
-- If the user writes in Hinglish (Hindi words mixed with English, written in Roman script — e.g. "bhai", "karo", "kya", "hai", "nahi", "chahiye", "dhoondhna"), then YOU MUST reply in Hinglish too — casual, friendly, Roman script Hindi mixed with English
-- Do NOT translate Hinglish queries into English and then answer formally — understand them directly
-- Hinglish reply example: "Bhai, memory mein iska koi record nahi mila, lekin general knowledge se batata hoon — X aur Y ka connection hai kyunki..."
-- If user writes in English, reply in English
-- Match the user's tone: casual for casual, formal for formal
+CRITICAL — LANGUAGE RULES (read carefully, no exceptions):
+- If the user's message is written in ENGLISH only → reply in ENGLISH only. No Hindi, no Hinglish.
+- If the user's message contains clear Hindi/Hinglish words in Roman script (e.g. "bhai", "kya", "hai", "nahi", "karo", "batao", "chahiye", "kyun", "kaise") → reply in Hinglish (casual Roman-script Hindi mixed with English)
+- Do NOT guess language from the user's name or project name — only from the actual words in their message
+- English question = English answer. Always. No exceptions.
 
-${contextBundle ? `RETRIEVED CONTEXT:\n${contextBundle}` : 'No memory context available yet — answer from general knowledge and encourage the user to add research sources.'}
+${contextBundle ? `RETRIEVED CONTEXT:\n${contextBundle}` : 'No memory context yet — answer from general knowledge and encourage the user to add research sources.'}
 
 Respond in a structured, intelligent manner. Use markdown for formatting when helpful.`;
 }
