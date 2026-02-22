@@ -40,6 +40,7 @@ export default function MemoryPanel({ projectId, messages }: Props) {
     const [memories, setMemories] = useState<MemoryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeMemoryIds, setActiveMemoryIds] = useState<Set<string>>(new Set());
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const fetchMemories = useCallback(async () => {
         try {
@@ -104,6 +105,7 @@ export default function MemoryPanel({ projectId, messages }: Props) {
                         const Icon = SOURCE_ICONS[mem.source_type] || FileText;
                         const color = SOURCE_COLORS[mem.source_type] || '#6366f1';
                         const isActive = activeMemoryIds.has(mem.id);
+                        const isExpanded = expandedId === mem.id;
 
                         return (
                             <motion.div
@@ -113,10 +115,11 @@ export default function MemoryPanel({ projectId, messages }: Props) {
                                     boxShadow: ['none', '0 0 12px rgba(99,102,241,0.3)', 'none'],
                                 } : {}}
                                 transition={{ duration: 0.8, repeat: isActive ? 2 : 0 }}
-                                className="p-3 rounded-xl cursor-default transition-all"
+                                onClick={() => setExpandedId(isExpanded ? null : mem.id)}
+                                className="p-3 rounded-xl cursor-pointer transition-all hover:bg-white/[0.03]"
                                 style={{
-                                    background: isActive ? 'rgba(99,102,241,0.08)' : 'var(--bg-card)',
-                                    border: `1px solid ${isActive ? 'rgba(99,102,241,0.3)' : 'var(--border)'}`,
+                                    background: isExpanded ? 'rgba(99,102,241,0.06)' : isActive ? 'rgba(99,102,241,0.08)' : 'var(--bg-card)',
+                                    border: `1px solid ${isExpanded ? 'rgba(99,102,241,0.35)' : isActive ? 'rgba(99,102,241,0.3)' : 'var(--border)'}`,
                                 }}
                             >
                                 <div className="flex items-start gap-2">
@@ -128,29 +131,63 @@ export default function MemoryPanel({ projectId, messages }: Props) {
                                             <span className="text-xs font-medium truncate" style={{ color: 'var(--text-secondary)' }}>
                                                 {mem.source_label}
                                             </span>
-                                            {isActive && (
-                                                <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(99,102,241,0.2)', color: 'var(--accent-light)', fontSize: 10 }}>
-                                                    Used ✓
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                                            {mem.content}
-                                        </p>
-                                        <div className="flex items-center gap-3 mt-1.5">
-                                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                                                accessed {mem.access_count}×
-                                            </span>
-                                            <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(99,102,241,0.1)' }}>
-                                                <div
-                                                    className="h-full rounded-full"
-                                                    style={{
-                                                        width: `${(mem.importance_score || 0.5) * 100}%`,
-                                                        background: `linear-gradient(90deg, ${color}, ${color}80)`
-                                                    }}
+                                            <div className="flex items-center gap-1">
+                                                {isActive && (
+                                                    <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(99,102,241,0.2)', color: 'var(--accent-light)', fontSize: 10 }}>
+                                                        Used ✓
+                                                    </span>
+                                                )}
+                                                <ChevronDown
+                                                    className="w-3 h-3 transition-transform"
+                                                    style={{ color: 'rgba(255,255,255,0.2)', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
                                                 />
                                             </div>
                                         </div>
+                                        {/* Content — truncated, expands on click */}
+                                        <p className="text-xs leading-relaxed" style={{
+                                            color: 'var(--text-muted)',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: isExpanded ? undefined : 2,
+                                            WebkitBoxOrient: 'vertical' as const,
+                                            overflow: isExpanded ? 'visible' : 'hidden',
+                                            whiteSpace: isExpanded ? 'pre-wrap' : undefined,
+                                        }}>
+                                            {mem.content}
+                                        </p>
+                                        {/* Expanded metadata */}
+                                        {isExpanded && (
+                                            <div className="mt-2 pt-2 flex flex-col gap-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Importance</span>
+                                                    <span className="text-[10px]" style={{ color }}>{Math.round((mem.importance_score || 0.5) * 100)}%</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Accessed</span>
+                                                    <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{mem.access_count}×</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Saved</span>
+                                                    <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{new Date(mem.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {/* Importance bar (collapsed only) */}
+                                        {!isExpanded && (
+                                            <div className="flex items-center gap-3 mt-1.5">
+                                                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                                    accessed {mem.access_count}×
+                                                </span>
+                                                <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(99,102,241,0.1)' }}>
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            width: `${(mem.importance_score || 0.5) * 100}%`,
+                                                            background: `linear-gradient(90deg, ${color}, ${color}80)`
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>

@@ -362,6 +362,7 @@ function MemoryPanel({ projectId, onClose }: { projectId: string; onClose: () =>
     const [seeding, setSeeding] = useState(false);
     const [seedDone, setSeedDone] = useState(false);
     const [urlProgress, setUrlProgress] = useState('');
+    const [expandedMemId, setExpandedMemId] = useState<string | null>(null);
 
     const refresh = useCallback(() => {
         setLoading(true);
@@ -522,9 +523,13 @@ function MemoryPanel({ projectId, onClose }: { projectId: string; onClose: () =>
                 ) : memories.map(m => {
                     const src = (m as MemoryChunk & { source_type: string }).source_type || 'chat';
                     const col = srcColors[src] || srcColors.chat;
+                    const isExpanded = expandedMemId === m.id;
                     return (
-                        <div key={m.id} className="p-3 rounded-xl transition-colors hover:bg-white/[0.03]"
-                            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+                        <div key={m.id}
+                            className="p-3 rounded-xl transition-all cursor-pointer"
+                            style={{ background: isExpanded ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.02)', border: `1px solid ${isExpanded ? 'rgba(99,102,241,0.3)' : 'var(--border)'}` }}
+                            onClick={() => setExpandedMemId(isExpanded ? null : m.id)}
+                        >
                             <div className="flex items-center gap-1.5 mb-1.5">
                                 <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium capitalize"
                                     style={{ background: col.bg, border: `1px solid ${col.border}`, color: col.text }}>
@@ -533,13 +538,36 @@ function MemoryPanel({ projectId, onClose }: { projectId: string; onClose: () =>
                                 <span className="text-[10px] truncate flex-1" style={{ color: 'var(--text-muted)' }}>
                                     {(m as MemoryChunk & { source_label?: string }).source_label || 'Memory'}
                                 </span>
-                                {(m as MemoryChunk & { access_count?: number }).access_count! > 0 && (
-                                    <span className="text-[9px] shrink-0" style={{ color: 'var(--text-muted)' }}>
-                                        ↑{(m as MemoryChunk & { access_count?: number }).access_count}
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    {(m as MemoryChunk & { access_count?: number }).access_count! > 0 && (
+                                        <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                                            ↑{(m as MemoryChunk & { access_count?: number }).access_count}
+                                        </span>
+                                    )}
+                                    <ChevronDown className="w-3 h-3 transition-transform" style={{ color: 'rgba(255,255,255,0.2)', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                                </div>
                             </div>
-                            <p className="text-[11px] leading-snug line-clamp-3" style={{ color: 'var(--text-secondary)' }}>{m.content}</p>
+                            <p className="text-[11px] leading-snug" style={{
+                                color: 'var(--text-secondary)',
+                                display: '-webkit-box',
+                                WebkitLineClamp: isExpanded ? undefined : 3,
+                                WebkitBoxOrient: 'vertical' as const,
+                                overflow: isExpanded ? 'visible' : 'hidden',
+                                whiteSpace: isExpanded ? 'pre-wrap' : undefined,
+                            }}>{m.content}</p>
+                            {isExpanded && (
+                                <div className="mt-2 pt-2 flex flex-wrap gap-x-4 gap-y-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                    {[(m as MemoryChunk & { importance_score?: number }).importance_score].filter(Boolean).map((score) => (
+                                        <span key="imp" className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Importance: <span style={{ color: col.text }}>{Math.round((score! as number) * 100)}%</span></span>
+                                    ))}
+                                    {[(m as MemoryChunk & { access_count?: number }).access_count].filter(v => v !== undefined).map((ac) => (
+                                        <span key="ac" className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Accessed: <span style={{ color: 'rgba(255,255,255,0.4)' }}>{ac as number}×</span></span>
+                                    ))}
+                                    {[(m as MemoryChunk & { created_at?: string }).created_at].filter(Boolean).map((d) => (
+                                        <span key="dt" className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Saved: <span style={{ color: 'rgba(255,255,255,0.4)' }}>{new Date(d as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
