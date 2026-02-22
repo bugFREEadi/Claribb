@@ -13,15 +13,28 @@ export async function POST(req: NextRequest) {
 
         const admin = createAdminSupabaseClient();
 
-        // Find server by invite code
+        // Normalize code — accept both "CLR-XXXXXX" and just "XXXXXX"
+        let normalizedCode = (invite_code as string).trim().toUpperCase();
+        if (!normalizedCode.startsWith('CLR-')) {
+            normalizedCode = `CLR-${normalizedCode}`;
+        }
+
+        // Use maybeSingle() — returns null (no error) when 0 rows found
         const { data: server, error: findErr } = await admin
             .from('research_servers')
             .select('*')
-            .eq('invite_code', (invite_code as string).trim().toUpperCase())
-            .single();
+            .eq('invite_code', normalizedCode)
+            .maybeSingle();
 
-        if (findErr || !server) {
-            return NextResponse.json({ error: 'Invalid invite code. Server not found.' }, { status: 404 });
+        if (findErr) {
+            console.error('[join] DB error:', findErr);
+            return NextResponse.json({ error: 'Database error while looking up the code.' }, { status: 500 });
+        }
+
+        if (!server) {
+            return NextResponse.json({
+                error: 'Server not found. This code may be expired or invalid. Ask the server owner to share a fresh invite code.',
+            }, { status: 404 });
         }
 
         // Check if already a member
@@ -30,7 +43,7 @@ export async function POST(req: NextRequest) {
             .select('id')
             .eq('server_id', server.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
         if (existing) {
             return NextResponse.json({ server, already_member: true });
