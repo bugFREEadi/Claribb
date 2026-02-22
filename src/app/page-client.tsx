@@ -676,7 +676,7 @@ const SYN: Record<string, string> = {
 /* Per-language code definitions */
 const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     python: [
-        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'clarrib' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'CLARIBB' }],
+        [{ t: 'k', v: 'from ' }, { t: 'm', v: 'claribb' }, { t: 'k', v: ' import ' }, { t: 'f', v: 'CLARIBB' }],
         [],
         [{ t: 'c', v: '# research with compounding memory' }],
         [],
@@ -686,7 +686,7 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
         [{ t: 'd', v: ')' }],
     ],
     node: [
-        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'CLARIBB' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@clarrib/client'" }],
+        [{ t: 'k', v: 'import ' }, { t: 'm', v: 'CLARIBB' }, { t: 'k', v: ' from ' }, { t: 's', v: "'@claribb/client'" }],
         [],
         [{ t: 'c', v: '// research with compounding memory' }],
         [],
@@ -697,7 +697,7 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     ],
     curl: [
         [{ t: 'f', v: 'curl ' }, { t: 'd', v: '-X ' }, { t: 's', v: 'POST' }, { t: 'd', v: ' \\' }],
-        [{ t: 'd', v: '  ' }, { t: 's', v: '"https://api.clarrib.ai/research"' }, { t: 'd', v: ' \\' }],
+        [{ t: 'd', v: '  ' }, { t: 's', v: '"https://api.claribb.ai/research"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Authorization: Bearer $CLARIBB_KEY"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -H ' }, { t: 's', v: '"Content-Type: application/json"' }, { t: 'd', v: ' \\' }],
         [{ t: 'd', v: '  -d ' }, { t: 'd', v: "'" }, { t: 'd', v: '{' }],
@@ -707,9 +707,9 @@ const LANG_CODE: Record<string, Array<{ t: string; v: string }[]>> = {
     ],
 };
 const CLIPBOARD_CODE: Record<string, (q: string) => string> = {
-    python: q => `from clarrib import CLARIBB\n\nclient = CLARIBB(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
-    node: q => `import CLARIBB from '@clarrib/client'\n\nconst client = new CLARIBB({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
-    curl: q => `curl -X POST "https://api.clarrib.ai/research" \\\n  -H "Authorization: Bearer $CLARIBB_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
+    python: q => `from claribb import CLARIBB\n\nclient = CLARIBB(memory="persistent", agents="all")\n\nresponse = client.research("${q}")`,
+    node: q => `import CLARIBB from '@claribb/client'\n\nconst client = new CLARIBB({ memory: 'persistent', agents: 'all' })\n\nconst response = await client.research("${q}")`,
+    curl: q => `curl -X POST "https://api.claribb.ai/research" \\\n  -H "Authorization: Bearer $CLARIBB_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"memory":"persistent","agents":"all","query":"${q}"}'`,
 };
 
 function CodePanel({ query }: { query: string }) {
