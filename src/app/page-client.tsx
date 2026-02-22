@@ -848,13 +848,15 @@ export default function LandingPage() {
                     {/* Logo */}
                     <div className="flex items-center gap-2.5">
                         <Brain className="w-5 h-5" style={{ color: C.sec }} />
-                        <span className="text-[15px] font-semibold tracking-tight">CLARIBB</span>
+                        <span className="text-[15px] font-semibold tracking-tight">Claribb</span>
                     </div>
                     {/* Links */}
                     <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
                         {[['Agents', '#agents'], ['How it Works', '#how-it-works'], ['Features', '#features']].map(([l, h]) => (
                             <a key={l} href={h} className="hover:text-white transition-colors duration-150">{l}</a>
                         ))}
+                        <Link href="/pricing" className="hover:text-white transition-colors duration-150">Pricing</Link>
+                        <Link href="/contact" className="hover:text-white transition-colors duration-150">Contact</Link>
                     </div>
                     {/* CTAs */}
                     <div className="flex items-center gap-3">
@@ -1203,10 +1205,12 @@ export default function LandingPage() {
                 <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2.5">
                         <Brain className="w-4 h-4" style={{ color: C.faint }} />
-                        <span className="font-semibold text-[14px]">CLARIBB</span>
+                        <span className="font-semibold text-[14px]">Claribb</span>
                         <span className="text-[13px]" style={{ color: C.faint }}> — Multi-Agent Research Intelligence</span>
                     </div>
                     <div className="flex items-center gap-5 text-[12.5px]" style={{ color: C.faint }}>
+                        <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+                        <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
                         <span>Groq · Cohere · pgvector · Next.js 15</span>
                         <span className="px-2 py-0.5 rounded text-[10px]" style={{ background: 'rgba(232,62,140,0.06)', color: C.pink, border: '1px solid rgba(232,62,140,0.16)' }}>SPEEDRUN 2026</span>
                     </div>
