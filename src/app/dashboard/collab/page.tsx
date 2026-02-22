@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Search, Users, Lock, Globe, Copy, Check, LogIn, Hash, ChevronRight } from 'lucide-react';
+import { Plus, X, Search, Users, Lock, Globe, Copy, Check, LogIn, Hash, ChevronRight, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Server {
     id: string;
@@ -12,23 +13,21 @@ interface Server {
     invite_code: string;
     is_public?: boolean;
     members_count?: number;
-    is_local?: boolean;
+    owner_id?: string;
+    my_role?: string;
 }
 
 const SERVER_ICONS = ['🔬', '📚', '🧠', '🌍', '⚡', '🎯', '📊', '🔭', '🧬', '💡', '🏛️', '🚀'];
-const LOCAL_SERVERS_KEY = 'claribb_local_servers';
-const MY_SERVERS_KEY = 'claribb_my_servers';
-
-function loadLocal<T>(key: string, fallback: T): T {
-    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
-}
 
 type Tab = 'my' | 'discover' | 'join';
 
 export default function CollabPage() {
+    const router = useRouter();
     const [tab, setTab] = useState<Tab>('my');
     const [myServers, setMyServers] = useState<Server[]>([]);
     const [publicServers, setPublicServers] = useState<Server[]>([]);
+    const [loadingMine, setLoadingMine] = useState(true);
+    const [loadingPublic, setLoadingPublic] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [showJoin, setShowJoin] = useState(false);
     const [serverName, setServerName] = useState('');
@@ -41,23 +40,50 @@ export default function CollabPage() {
     const [joining, setJoining] = useState(false);
     const [copiedCode, setCopiedCode] = useState('');
     const [joinError, setJoinError] = useState('');
+    const [createError, setCreateError] = useState('');
 
-    useEffect(() => {
-        setMyServers(loadLocal<Server[]>(MY_SERVERS_KEY, []));
-        fetchPublicServers();
+    // Fetch user's own servers from Supabase
+    const fetchMyServers = useCallback(async () => {
+        setLoadingMine(true);
+        try {
+            const res = await fetch('/api/servers?mine=true');
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+            setMyServers(data.servers || []);
+        } catch {
+            setMyServers([]);
+        } finally {
+            setLoadingMine(false);
+        }
     }, []);
 
-    const fetchPublicServers = async () => {
+    // Fetch public servers
+    const fetchPublicServers = useCallback(async (q = '') => {
+        setLoadingPublic(true);
         try {
-            const res = await fetch('/api/servers' + (searchQ ? `?q=${searchQ}` : ''));
+            const params = new URLSearchParams({ public: 'true', ...(q ? { q } : {}) });
+            const res = await fetch(`/api/servers?${params}`);
             const data = await res.json();
             setPublicServers(data.servers || []);
-        } catch { setPublicServers([]); }
-    };
+        } catch {
+            setPublicServers([]);
+        } finally {
+            setLoadingPublic(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchMyServers();
+    }, [fetchMyServers]);
+
+    useEffect(() => {
+        if (tab === 'discover') fetchPublicServers(searchQ);
+    }, [tab, fetchPublicServers, searchQ]);
 
     const createServer = async () => {
         if (!serverName.trim()) return;
         setCreating(true);
+        setCreateError('');
         try {
             const res = await fetch('/api/servers', {
                 method: 'POST',
@@ -65,49 +91,45 @@ export default function CollabPage() {
                 body: JSON.stringify({ name: serverName.trim(), description: serverDesc, icon: serverIcon, is_public: isPublic }),
             });
             const data = await res.json();
-            const server: Server = {
-                id: data.server?.id || crypto.randomUUID(),
-                name: serverName.trim(),
-                description: serverDesc,
-                icon: serverIcon,
-                invite_code: data.server?.invite_code || `CLR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                is_public: isPublic,
-                members_count: 1,
-            };
-            const updated = [server, ...myServers];
-            setMyServers(updated);
-            localStorage.setItem(MY_SERVERS_KEY, JSON.stringify(updated));
-            if (isPublic) {
-                const pub = [server, ...publicServers];
-                setPublicServers(pub);
-                localStorage.setItem(LOCAL_SERVERS_KEY, JSON.stringify(pub));
-            }
+            if (!res.ok) throw new Error(data.error || 'Failed to create');
             setShowCreate(false);
             setServerName(''); setServerDesc(''); setServerIcon('🔬'); setIsPublic(false);
+            await fetchMyServers();
             setTab('my');
-        } catch { /* ignore */ }
-        finally { setCreating(false); }
+        } catch (e) {
+            setCreateError(e instanceof Error ? e.message : 'Failed to create server');
+        } finally {
+            setCreating(false);
+        }
     };
 
     const joinByCode = async () => {
         const code = joinCode.trim().toUpperCase();
         if (!code) return;
-        setJoining(true); setJoinError('');
+        setJoining(true);
+        setJoinError('');
         try {
-            // Check local servers first
-            const allLocal: Server[] = loadLocal<Server[]>(LOCAL_SERVERS_KEY, []);
-            const found = allLocal.find(s => s.invite_code === code || s.invite_code === `CLR-${code}`);
-            const server = found || { id: crypto.randomUUID(), name: 'Research Server', icon: '🔬', invite_code: code, is_public: true, members_count: 1 };
-            const already = myServers.find(s => s.invite_code === code || s.invite_code === `CLR-${code}`);
-            if (already) { setJoinError('You already joined this server!'); return; }
-            const updated = [server, ...myServers];
-            setMyServers(updated);
-            localStorage.setItem(MY_SERVERS_KEY, JSON.stringify(updated));
+            const res = await fetch('/api/servers/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ invite_code: code }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Invalid invite code');
+            if (data.already_member) {
+                setJoinError('You are already a member of this server!');
+                setJoining(false);
+                return;
+            }
             setJoinCode('');
             setShowJoin(false);
+            await fetchMyServers();
             setTab('my');
-        } catch { setJoinError('Invalid invite code. Please check and try again.'); }
-        finally { setJoining(false); }
+        } catch (e) {
+            setJoinError(e instanceof Error ? e.message : 'Invalid invite code. Please check and try again.');
+        } finally {
+            setJoining(false);
+        }
     };
 
     const copyCode = (code: string) => {
@@ -130,7 +152,7 @@ export default function CollabPage() {
                 <div>
                     <h1 style={{ color: '#fff', fontSize: '1.8rem', fontWeight: 700, margin: 0 }}>Collab</h1>
                     <p style={{ color: '#555', fontSize: '0.85rem', marginTop: 6 }}>
-                        Create or join research servers — collaborate like Discord
+                        Create or join research servers — synced across all your devices
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -146,7 +168,7 @@ export default function CollabPage() {
             </motion.div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', borderBottom: '1px solid #1a1a1a', paddingBottom: 0 }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: '1.5rem', borderBottom: '1px solid #1a1a1a' }}>
                 {TABS.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)}
                         style={{
@@ -158,10 +180,14 @@ export default function CollabPage() {
                 ))}
             </div>
 
-            {/* My Servers */}
+            {/* === MY SERVERS === */}
             {tab === 'my' && (
                 <div>
-                    {myServers.length === 0 ? (
+                    {loadingMine ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3rem 0', color: '#444', fontSize: '0.85rem' }}>
+                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading your servers...
+                        </div>
+                    ) : myServers.length === 0 ? (
                         <div style={{ textAlign: 'center', paddingTop: '4rem' }}>
                             <div style={{ width: 56, height: 56, borderRadius: 14, background: '#111', border: '1px solid #1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                                 <Users size={22} style={{ color: '#333' }} />
@@ -174,31 +200,43 @@ export default function CollabPage() {
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {/* Refresh button */}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                                <button onClick={fetchMyServers}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.3rem 0.7rem', borderRadius: 8, background: 'transparent', border: '1px solid #222', color: '#555', fontSize: '0.72rem', cursor: 'pointer' }}>
+                                    <RefreshCw size={11} /> Refresh
+                                </button>
+                            </div>
                             {myServers.map(server => (
                                 <motion.div key={server.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                    style={{ background: '#0f0f0f', border: '1px solid #1e1e1e', borderRadius: 12, padding: '1.2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    onClick={() => router.push(`/dashboard/collab/${server.id}`)}
+                                    style={{ background: '#0f0f0f', border: '1px solid #1e1e1e', borderRadius: 12, padding: '1.2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'border-color 0.15s' }}
+                                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#333')}
+                                    onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e1e1e')}>
                                     <div style={{ width: 44, height: 44, borderRadius: 12, background: '#1a1a1a', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', flexShrink: 0 }}>
                                         {server.icon || '🔬'}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                             <span style={{ color: '#e0e0e0', fontWeight: 600, fontSize: '0.9rem' }}>{server.name}</span>
+                                            {server.my_role === 'owner' && (
+                                                <span style={{ fontSize: '0.6rem', color: '#E83E8C', background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.2)', padding: '1px 6px', borderRadius: 99 }}>Owner</span>
+                                            )}
                                             {server.is_public
                                                 ? <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', color: '#888', background: '#1a1a1a', border: '1px solid #2a2a2a', padding: '1px 6px', borderRadius: 99 }}><Globe size={9} />Public</span>
                                                 : <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', color: '#555', background: '#111', border: '1px solid #1a1a1a', padding: '1px 6px', borderRadius: 99 }}><Lock size={9} />Private</span>}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <Hash size={11} style={{ color: '#444' }} />
-                                            <code style={{ color: '#666', fontSize: '0.75rem', fontFamily: 'monospace' }}>{server.invite_code}</code>
-                                            <button onClick={() => copyCode(server.invite_code)}
-                                                style={{ background: 'none', border: 'none', color: copiedCode === server.invite_code ? '#E83E8C' : '#444', cursor: 'pointer', padding: 2 }}>
+                                            <code style={{ color: '#555', fontSize: '0.72rem', fontFamily: 'monospace' }}>{server.invite_code}</code>
+                                            <button onClick={e => { e.stopPropagation(); copyCode(server.invite_code); }}
+                                                style={{ background: 'none', border: 'none', color: copiedCode === server.invite_code ? '#E83E8C' : '#333', cursor: 'pointer', padding: 2 }}>
                                                 {copiedCode === server.invite_code ? <Check size={11} /> : <Copy size={11} />}
                                             </button>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#666', fontSize: '0.75rem' }}>
-                                        <Users size={12} />
-                                        {server.members_count || 1}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#555', fontSize: '0.75rem', marginRight: 8 }}>
+                                        <Users size={12} /> {server.members_count || 1}
                                     </div>
                                     <ChevronRight size={14} style={{ color: '#333' }} />
                                 </motion.div>
@@ -208,10 +246,10 @@ export default function CollabPage() {
                 </div>
             )}
 
-            {/* Discover public servers */}
+            {/* === DISCOVER === */}
             {tab === 'discover' && (
                 <div>
-                    <form onSubmit={e => { e.preventDefault(); fetchPublicServers(); }} style={{ display: 'flex', gap: 8, marginBottom: '1.5rem' }}>
+                    <form onSubmit={e => { e.preventDefault(); fetchPublicServers(searchQ); }} style={{ display: 'flex', gap: 8, marginBottom: '1.5rem' }}>
                         <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
                             <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
                             <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search public servers..."
@@ -220,9 +258,14 @@ export default function CollabPage() {
                         <button type="submit" style={{ padding: '0.55rem 1rem', borderRadius: 8, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#888', fontSize: '0.8rem', cursor: 'pointer' }}>Search</button>
                     </form>
 
-                    {publicServers.length === 0 ? (
+                    {loadingPublic ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#444', fontSize: '0.85rem' }}>
+                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Loading...
+                        </div>
+                    ) : publicServers.length === 0 ? (
                         <div style={{ textAlign: 'center', paddingTop: '3rem', color: '#444', fontSize: '0.88rem' }}>
-                            No public servers found. <span style={{ color: '#E83E8C', cursor: 'pointer' }} onClick={() => setShowCreate(true)}>Create the first one!</span>
+                            No public servers found.{' '}
+                            <span style={{ color: '#E83E8C', cursor: 'pointer' }} onClick={() => setShowCreate(true)}>Create the first one!</span>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -248,27 +291,31 @@ export default function CollabPage() {
                 </div>
             )}
 
-            {/* Join by Code */}
+            {/* === JOIN BY CODE === */}
             {tab === 'join' && (
                 <div style={{ maxWidth: 420 }}>
                     <p style={{ color: '#666', fontSize: '0.82rem', marginBottom: '1rem' }}>
                         Enter an invite code (format: <code style={{ color: '#888', fontFamily: 'monospace' }}>CLR-XXXXXX</code>) shared by another researcher
                     </p>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <input value={joinCode} onChange={e => setJoinCode(e.target.value)}
+                        <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())}
                             onKeyDown={e => e.key === 'Enter' && joinByCode()}
                             placeholder="CLR-XXXXXX"
                             style={{ flex: 1, padding: '0.65rem 0.75rem', borderRadius: 8, background: '#111', border: '1px solid #222', color: '#e0e0e0', fontSize: '0.9rem', fontFamily: 'monospace', outline: 'none', textTransform: 'uppercase' }} />
                         <button onClick={joinByCode} disabled={!joinCode.trim() || joining}
                             style={{ padding: '0.65rem 1.2rem', borderRadius: 8, background: '#E83E8C', color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', opacity: (!joinCode.trim() || joining) ? 0.5 : 1 }}>
-                            {joining ? '...' : 'Join'}
+                            {joining ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Join'}
                         </button>
                     </div>
-                    {joinError && <p style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: 8 }}>{joinError}</p>}
+                    {joinError && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: '#ef4444', fontSize: '0.78rem' }}>
+                            <AlertCircle size={13} /> {joinError}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Create Server Modal */}
+            {/* === CREATE SERVER MODAL === */}
             <AnimatePresence>
                 {showCreate && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -280,8 +327,6 @@ export default function CollabPage() {
                                 <h3 style={{ color: '#fff', fontWeight: 700, margin: 0 }}>Create Research Server</h3>
                                 <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer' }}><X size={16} /></button>
                             </div>
-
-                            {/* Icon picker */}
                             <p style={{ color: '#555', fontSize: '0.73rem', marginBottom: 6 }}>Server Icon</p>
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: '1rem' }}>
                                 {SERVER_ICONS.map(ic => (
@@ -289,13 +334,10 @@ export default function CollabPage() {
                                         style={{ width: 34, height: 34, borderRadius: 8, fontSize: '1rem', background: serverIcon === ic ? '#1e1e1e' : 'transparent', border: serverIcon === ic ? '1px solid #333' : '1px solid #1a1a1a', cursor: 'pointer' }}>{ic}</button>
                                 ))}
                             </div>
-
                             <input value={serverName} onChange={e => setServerName(e.target.value)} placeholder="Server name *"
                                 style={{ width: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: '#0a0a0a', border: '1px solid #222', color: '#e0e0e0', fontSize: '0.88rem', outline: 'none', marginBottom: 8 }} />
                             <textarea value={serverDesc} onChange={e => setServerDesc(e.target.value)} placeholder="Description (optional)" rows={2}
                                 style={{ width: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem', borderRadius: 8, background: '#0a0a0a', border: '1px solid #222', color: '#e0e0e0', fontSize: '0.85rem', outline: 'none', marginBottom: '1rem', resize: 'none', fontFamily: 'inherit' }} />
-
-                            {/* Public toggle */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', padding: '0.75rem', borderRadius: 8, background: '#0a0a0a', border: '1px solid #1a1a1a' }}>
                                 <div>
                                     <div style={{ color: '#d0d0d0', fontSize: '0.85rem', fontWeight: 500 }}>Public Server</div>
@@ -305,17 +347,21 @@ export default function CollabPage() {
                                     <div style={{ position: 'absolute', top: 2, left: isPublic ? 17 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
                                 </div>
                             </div>
-
+                            {createError && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, color: '#ef4444', fontSize: '0.78rem' }}>
+                                    <AlertCircle size={13} /> {createError}
+                                </div>
+                            )}
                             <button onClick={createServer} disabled={!serverName.trim() || creating}
-                                style={{ width: '100%', padding: '0.65rem', borderRadius: 8, background: serverName.trim() ? '#E83E8C' : '#1a1a1a', color: serverName.trim() ? '#fff' : '#444', border: 'none', fontWeight: 600, fontSize: '0.88rem', cursor: serverName.trim() ? 'pointer' : 'default', transition: 'all 0.2s' }}>
-                                {creating ? 'Creating...' : 'Create Server'}
+                                style={{ width: '100%', padding: '0.65rem', borderRadius: 8, background: serverName.trim() ? '#E83E8C' : '#1a1a1a', color: serverName.trim() ? '#fff' : '#444', border: 'none', fontWeight: 600, fontSize: '0.88rem', cursor: serverName.trim() ? 'pointer' : 'default', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                {creating ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Creating...</> : 'Create Server'}
                             </button>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Quick Join Modal */}
+            {/* === QUICK JOIN MODAL === */}
             <AnimatePresence>
                 {showJoin && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -332,15 +378,21 @@ export default function CollabPage() {
                                 onKeyDown={e => e.key === 'Enter' && joinByCode()}
                                 placeholder="CLR-XXXXXX"
                                 style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem 0.75rem', borderRadius: 8, background: '#0a0a0a', border: '1px solid #222', color: '#e0e0e0', fontSize: '0.95rem', fontFamily: 'monospace', outline: 'none', marginBottom: 8, letterSpacing: '0.05em' }} />
-                            {joinError && <p style={{ color: '#ef4444', fontSize: '0.78rem', marginBottom: 8 }}>{joinError}</p>}
+                            {joinError && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, color: '#ef4444', fontSize: '0.78rem' }}>
+                                    <AlertCircle size={13} /> {joinError}
+                                </div>
+                            )}
                             <button onClick={joinByCode} disabled={!joinCode.trim() || joining}
-                                style={{ width: '100%', padding: '0.65rem', borderRadius: 8, background: joinCode.trim() ? '#E83E8C' : '#1a1a1a', color: joinCode.trim() ? '#fff' : '#444', border: 'none', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}>
-                                {joining ? 'Joining...' : 'Join Server'}
+                                style={{ width: '100%', padding: '0.65rem', borderRadius: 8, background: joinCode.trim() ? '#E83E8C' : '#1a1a1a', color: joinCode.trim() ? '#fff' : '#444', border: 'none', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                {joining ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Joining...</> : 'Join Server'}
                             </button>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 }

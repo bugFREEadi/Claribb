@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, ExternalLink, Globe, Cpu, FlaskConical, Newspaper, Briefcase, Search, Loader2, Clock } from 'lucide-react';
 
@@ -22,6 +22,21 @@ const CATEGORIES = [
     { id: 'health', label: 'Health', icon: Globe },
 ];
 
+const CACHE_KEY = 'claribb_discover_cache';
+
+interface NewsCache {
+    articles: Article[];
+    category: string;
+    fetchedAt: number;
+}
+
+function loadCache(): NewsCache | null {
+    try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
+}
+function saveCache(articles: Article[], category: string) {
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ articles, category, fetchedAt: Date.now() })); } catch { /* quota */ }
+}
+
 function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const h = Math.floor(diff / 3600000);
@@ -38,8 +53,28 @@ export default function DiscoverPage() {
     const [activeCategory, setActiveCategory] = useState('technology');
     const [searchQ, setSearchQ] = useState('');
     const [loaded, setLoaded] = useState(false);
+    const refreshBtnRef = useRef<HTMLButtonElement>(null);
 
-    const fetchNews = async (category = activeCategory, q = '') => {
+    // On mount: restore from sessionStorage cache
+    useEffect(() => {
+        const cache = loadCache();
+        if (cache && cache.articles.length > 0) {
+            setArticles(cache.articles);
+            setActiveCategory(cache.category || 'technology');
+            setLoaded(true);
+        }
+    }, []);
+
+    const fetchNews = useCallback(async (category = activeCategory, q = '', force = false) => {
+        // If not forced (i.e. Refresh not clicked), and cache exists → skip fetch
+        if (!force) {
+            const cache = loadCache();
+            if (cache && cache.articles.length > 0) {
+                setArticles(cache.articles);
+                setLoaded(true);
+                return;
+            }
+        }
         setLoading(true);
         setError('');
         try {
@@ -47,24 +82,31 @@ export default function DiscoverPage() {
             const res = await fetch(`/api/discover?${params}`);
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to fetch');
-            setArticles(data.articles.filter((a: Article) => a.title && a.title !== '[Removed]'));
+            const filtered = data.articles.filter((a: Article) => a.title && a.title !== '[Removed]');
+            setArticles(filtered);
             setLoaded(true);
+            saveCache(filtered, category);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Failed to load news');
         } finally {
             setLoading(false);
         }
+    }, [activeCategory]);
+
+    const handleRefresh = () => {
+        fetchNews(activeCategory, searchQ, true); // force = true → always fetch
     };
 
     const handleCategory = (cat: string) => {
         setActiveCategory(cat);
         setSearchQ('');
-        fetchNews(cat, '');
+        // On category change: always fetch fresh
+        fetchNews(cat, '', true);
     };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQ.trim()) fetchNews(activeCategory, searchQ.trim());
+        if (searchQ.trim()) fetchNews(activeCategory, searchQ.trim(), true);
     };
 
     return (
@@ -77,14 +119,16 @@ export default function DiscoverPage() {
                         Discover
                     </h1>
                     <p style={{ color: '#555', fontSize: '0.85rem', marginTop: 6 }}>
-                        Latest news for researchers — click Refresh to load stories
+                        Latest news for researchers — cached until you Refresh
                     </p>
                 </div>
 
                 {/* Refresh button */}
                 <button
-                    onClick={() => fetchNews(activeCategory, searchQ)}
+                    ref={refreshBtnRef}
+                    onClick={handleRefresh}
                     disabled={loading}
+                    id="discover-refresh-btn"
                     style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '0.6rem 1.2rem', borderRadius: 10,
@@ -158,7 +202,21 @@ export default function DiscoverPage() {
                     }}>
                         <RefreshCw size={24} style={{ color: '#333' }} />
                     </div>
-                    <p style={{ color: '#444', fontSize: '0.9rem' }}>Click <strong style={{ color: '#E83E8C' }}>Refresh</strong> to load the latest news</p>
+                    <p style={{ color: '#444', fontSize: '0.9rem' }}>
+                        Click{' '}
+                        <button
+                            onClick={handleRefresh}
+                            style={{
+                                background: 'none', border: 'none', color: '#E83E8C',
+                                fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem',
+                                textDecoration: 'underline', textDecorationStyle: 'dashed',
+                                textUnderlineOffset: 3, padding: 0,
+                            }}
+                        >
+                            Refresh
+                        </button>
+                        {' '}to load the latest news
+                    </p>
                 </motion.div>
             )}
 
@@ -182,7 +240,7 @@ export default function DiscoverPage() {
                                 rel="noopener noreferrer"
                                 initial={{ opacity: 0, y: 16 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.04 }}
+                                transition={{ delay: i * 0.03 }}
                                 style={{
                                     display: 'block', textDecoration: 'none',
                                     background: '#0f0f0f', border: '1px solid #1e1e1e',
@@ -198,7 +256,6 @@ export default function DiscoverPage() {
                                     (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                                 }}
                             >
-                                {/* Thumbnail */}
                                 {article.urlToImage && (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
@@ -208,9 +265,7 @@ export default function DiscoverPage() {
                                         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                                     />
                                 )}
-
                                 <div style={{ padding: '1rem' }}>
-                                    {/* Source + time */}
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                                         <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#E83E8C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                             {article.source.name}
@@ -220,8 +275,6 @@ export default function DiscoverPage() {
                                             {timeAgo(article.publishedAt)}
                                         </span>
                                     </div>
-
-                                    {/* Title */}
                                     <h3 style={{
                                         color: '#e0e0e0', fontSize: '0.85rem', fontWeight: 600,
                                         margin: '0 0 0.5rem', lineHeight: 1.4,
@@ -230,8 +283,6 @@ export default function DiscoverPage() {
                                     }}>
                                         {article.title}
                                     </h3>
-
-                                    {/* Description */}
                                     {article.description && (
                                         <p style={{
                                             color: '#555', fontSize: '0.75rem', lineHeight: 1.5,
@@ -242,8 +293,6 @@ export default function DiscoverPage() {
                                             {article.description}
                                         </p>
                                     )}
-
-                                    {/* Read more */}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#888', fontSize: '0.7rem' }}>
                                         <ExternalLink size={10} />
                                         Read full article
@@ -255,9 +304,7 @@ export default function DiscoverPage() {
                 )}
             </AnimatePresence>
 
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-            `}</style>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 }
