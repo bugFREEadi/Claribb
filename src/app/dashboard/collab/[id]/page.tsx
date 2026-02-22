@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Copy, Check, Hash, Globe, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Users, Copy, Check, Hash, Globe, Lock, ArrowLeft,
+    Loader2, Send, Sparkles, Info, X
+} from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
+import { createClientSupabaseClient } from '@/lib/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface Server {
     id: string;
@@ -18,30 +23,167 @@ interface Server {
     created_at?: string;
 }
 
+interface ChatMessage {
+    id: string;
+    server_id: string;
+    user_id: string;
+    user_name: string;
+    role: 'user' | 'ai';
+    content: string;
+    created_at: string;
+}
+
+// Stable avatar color per user
+function avatarColor(userId: string) {
+    const colors = ['#E83E8C', '#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function Avatar({ name, userId, size = 28 }: { name: string; userId: string; size?: number }) {
+    const bg = avatarColor(userId);
+    return (
+        <div style={{ width: size, height: size, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.38, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            {name.charAt(0).toUpperCase()}
+        </div>
+    );
+}
+
 export default function ServerDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const router = useRouter();
+    const supabase = createClientSupabaseClient();
+
     const [server, setServer] = useState<Server | null>(null);
     const [loading, setLoading] = useState(true);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [input, setInput] = useState('');
+    const [sending, setSending] = useState(false);
+    const [askingAI, setAskingAI] = useState(false);
     const [copiedCode, setCopiedCode] = useState(false);
+    const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
+    const [showInfo, setShowInfo] = useState(false);
+    const [loadingMsgs, setLoadingMsgs] = useState(true);
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const channelRef = useRef<RealtimeChannel | null>(null);
 
+    // Get current user
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+                const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Researcher';
+                setCurrentUser({ id: user.id, name });
+            }
+        });
+    }, [supabase]);
+
+    // Fetch server info
     useEffect(() => {
         const fetchServer = async () => {
             try {
-                // Fetch from my servers to get role info
                 const res = await fetch('/api/servers?mine=true');
                 const data = await res.json();
                 const found = (data.servers || []).find((s: Server) => s.id === id);
                 setServer(found || null);
-            } catch {
-                setServer(null);
-            } finally {
-                setLoading(false);
-            }
+            } catch { setServer(null); }
+            finally { setLoading(false); }
         };
         fetchServer();
     }, [id]);
+
+    // Fetch initial messages
+    const fetchMessages = useCallback(async () => {
+        setLoadingMsgs(true);
+        try {
+            const { data } = await supabase
+                .from('server_messages')
+                .select('*')
+                .eq('server_id', id)
+                .order('created_at', { ascending: true })
+                .limit(100);
+            setMessages(data || []);
+        } catch { /* silent */ }
+        finally { setLoadingMsgs(false); }
+    }, [id, supabase]);
+
+    useEffect(() => { fetchMessages(); }, [fetchMessages]);
+
+    // Supabase Realtime subscription
+    useEffect(() => {
+        const channel = supabase
+            .channel(`server_chat_${id}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'server_messages', filter: `server_id=eq.${id}` },
+                (payload) => {
+                    const newMsg = payload.new as ChatMessage;
+                    setMessages(prev => {
+                        // Avoid duplicates
+                        if (prev.find(m => m.id === newMsg.id)) return prev;
+                        return [...prev, newMsg];
+                    });
+                }
+            )
+            .subscribe();
+
+        channelRef.current = channel;
+        return () => { supabase.removeChannel(channel); };
+    }, [id, supabase]);
+
+    // Auto scroll
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const sendMessage = async () => {
+        if (!input.trim() || sending || !currentUser) return;
+        const content = input.trim();
+        setInput('');
+        setSending(true);
+        try {
+            await supabase.from('server_messages').insert({
+                server_id: id,
+                user_id: currentUser.id,
+                user_name: currentUser.name,
+                role: 'user',
+                content,
+            });
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const askAI = async () => {
+        if (!input.trim() || askingAI || !currentUser || !server) return;
+        const question = input.trim();
+        setInput('');
+        setAskingAI(true);
+
+        // First send user's message
+        await supabase.from('server_messages').insert({
+            server_id: id,
+            user_id: currentUser.id,
+            user_name: currentUser.name,
+            role: 'user',
+            content: question,
+        });
+
+        try {
+            await fetch(`/api/servers/${id}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, serverName: server.name, history: messages.slice(-10) }),
+            });
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setAskingAI(false);
+        }
+    };
 
     const copyCode = () => {
         if (!server) return;
@@ -50,120 +192,244 @@ export default function ServerDetailPage() {
         setTimeout(() => setCopiedCode(false), 2000);
     };
 
-    if (loading) {
-        return (
-            <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Loader2 size={20} style={{ color: '#444', animation: 'spin 1s linear infinite' }} />
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-        );
-    }
+    if (loading) return (
+        <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Loader2 size={20} style={{ color: '#444', animation: 'spin 1s linear infinite' }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
 
-    if (!server) {
-        return (
-            <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                <p style={{ color: '#555', fontSize: '0.9rem' }}>Server not found or you don&apos;t have access.</p>
-                <button onClick={() => router.push('/dashboard/collab')}
-                    style={{ padding: '0.5rem 1rem', borderRadius: 8, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#888', fontSize: '0.82rem', cursor: 'pointer' }}>
-                    ← Back to Collab
-                </button>
-            </div>
-        );
-    }
+    if (!server) return (
+        <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <p style={{ color: '#555', fontSize: '0.9rem' }}>Server not found or you don&apos;t have access.</p>
+            <button onClick={() => router.push('/dashboard/collab')}
+                style={{ padding: '0.5rem 1rem', borderRadius: 8, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#888', fontSize: '0.82rem', cursor: 'pointer' }}>
+                ← Back to Collab
+            </button>
+        </div>
+    );
 
     return (
-        <div style={{ minHeight: '100vh', background: '#0a0a0a', padding: '2.5rem 2.5rem 4rem' }}>
-            {/* Back */}
-            <button onClick={() => router.push('/dashboard/collab')}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#555', fontSize: '0.82rem', cursor: 'pointer', marginBottom: '1.75rem', padding: 0 }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#888')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
-                <ArrowLeft size={14} /> Back to Collab
-            </button>
-
-            {/* Server header */}
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', marginBottom: '2.5rem' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a1a1a', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', flexShrink: 0 }}>
+        <div style={{ height: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* ── TOP BAR ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0a0a0a', flexShrink: 0 }}>
+                <button onClick={() => router.push('/dashboard/collab')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: '#555', fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
+                    <ArrowLeft size={13} />
+                </button>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1a1a1a', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
                     {server.icon || '🔬'}
                 </div>
                 <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <h1 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>{server.name}</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: '#e0e0e0', fontWeight: 600, fontSize: '0.88rem' }}>{server.name}</span>
                         {server.my_role === 'owner' && (
-                            <span style={{ fontSize: '0.63rem', color: '#E83E8C', background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.2)', padding: '2px 7px', borderRadius: 99, fontWeight: 600 }}>Owner</span>
+                            <span style={{ fontSize: '0.6rem', color: '#E83E8C', background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.2)', padding: '1px 6px', borderRadius: 99 }}>Owner</span>
                         )}
                         {server.is_public
-                            ? <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', color: '#888', background: '#1a1a1a', border: '1px solid #2a2a2a', padding: '2px 7px', borderRadius: 99 }}><Globe size={9} />Public</span>
-                            : <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', color: '#555', background: '#111', border: '1px solid #1a1a1a', padding: '2px 7px', borderRadius: 99 }}><Lock size={9} />Private</span>}
+                            ? <Globe size={11} style={{ color: '#555' }} />
+                            : <Lock size={11} style={{ color: '#444' }} />}
                     </div>
-                    {server.description && <p style={{ color: '#555', fontSize: '0.82rem', margin: '0 0 8px' }}>{server.description}</p>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Hash size={12} style={{ color: '#333' }} />
-                        <code style={{ color: '#666', fontSize: '0.78rem', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{server.invite_code}</code>
-                        <button onClick={copyCode}
-                            style={{ background: 'none', border: 'none', color: copiedCode ? '#E83E8C' : '#444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.72rem' }}>
-                            {copiedCode ? <><Check size={11} /> Copied!</> : <><Copy size={11} /> Copy invite</>}
-                        </button>
+                    {server.description && <p style={{ color: '#444', fontSize: '0.7rem', margin: 0 }}>{server.description}</p>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#555', fontSize: '0.75rem' }}>
+                        <Users size={12} /> {server.members_count || 1}
                     </div>
+                    <button onClick={copyCode} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.6rem', borderRadius: 6, background: '#111', border: '1px solid #1e1e1e', color: copiedCode ? '#E83E8C' : '#555', fontSize: '0.72rem', cursor: 'pointer' }}>
+                        {copiedCode ? <Check size={10} /> : <Copy size={10} />}
+                        <code style={{ fontFamily: 'monospace' }}>{server.invite_code}</code>
+                    </button>
+                    <button onClick={() => setShowInfo(s => !s)} style={{ background: 'none', border: 'none', color: showInfo ? '#E83E8C' : '#444', cursor: 'pointer' }}>
+                        <Info size={15} />
+                    </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', color: '#555' }}>
-                    <Users size={14} />
-                    <span>{server.members_count || 1} member{(server.members_count || 1) !== 1 ? 's' : ''}</span>
-                </div>
-            </motion.div>
+            </div>
 
-            {/* Server content area */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
-                {/* Main channel */}
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    style={{ background: '#0f0f0f', border: '1px solid #1e1e1e', borderRadius: 12, overflow: 'hidden' }}>
-                    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Hash size={13} style={{ color: '#444' }} />
-                        <span style={{ color: '#888', fontSize: '0.82rem', fontWeight: 600 }}>general</span>
+            {/* ── MAIN AREA ── */}
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+                {/* ── CHAT ── */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    {/* Channel name */}
+                    <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <Hash size={12} style={{ color: '#444' }} />
+                        <span style={{ color: '#555', fontSize: '0.78rem', fontWeight: 600 }}>general</span>
                     </div>
-                    <div style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
-                        <p style={{ color: '#2e2e2e', fontSize: '0.85rem', marginBottom: 8 }}>Share this server&apos;s invite code to invite researchers:</p>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0.5rem 1rem', borderRadius: 8, background: '#111', border: '1px solid #1e1e1e' }}>
-                            <code style={{ color: '#888', fontSize: '0.9rem', fontFamily: 'monospace', letterSpacing: '0.08em' }}>{server.invite_code}</code>
-                            <button onClick={copyCode}
-                                style={{ background: 'none', border: 'none', color: copiedCode ? '#E83E8C' : '#444', cursor: 'pointer' }}>
-                                {copiedCode ? <Check size={13} /> : <Copy size={13} />}
+
+                    {/* Messages */}
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {loadingMsgs ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '3rem', color: '#333', fontSize: '0.8rem' }}>
+                                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: 6 }} /> Loading messages...
+                            </div>
+                        ) : messages.length === 0 ? (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                style={{ textAlign: 'center', paddingTop: '4rem' }}>
+                                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>{server.icon || '🔬'}</div>
+                                <p style={{ color: '#333', fontSize: '0.88rem', marginBottom: 4 }}>Welcome to <strong style={{ color: '#555' }}>{server.name}</strong>!</p>
+                                <p style={{ color: '#2a2a2a', fontSize: '0.78rem' }}>Start the research conversation. Type a question or use <strong style={{ color: '#E83E8C' }}>Ask AI</strong> ✨</p>
+                            </motion.div>
+                        ) : (
+                            <>
+                                {messages.map((msg, i) => {
+                                    const isMe = msg.user_id === currentUser?.id && msg.role === 'user';
+                                    const isAI = msg.role === 'ai';
+                                    const prevMsg = messages[i - 1];
+                                    const showName = !prevMsg || prevMsg.user_id !== msg.user_id || prevMsg.role !== msg.role;
+
+                                    return (
+                                        <motion.div key={msg.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                                            style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: showName ? 8 : 1 }}>
+                                            {/* Avatar */}
+                                            {showName && !isMe && (
+                                                <div style={{ flexShrink: 0, marginTop: 2 }}>
+                                                    {isAI
+                                                        ? <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #E83E8C, #A78BD4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>✦</div>
+                                                        : <Avatar name={msg.user_name} userId={msg.user_id} size={28} />}
+                                                </div>
+                                            )}
+                                            {!showName && !isMe && <div style={{ width: 28 }} />}
+
+                                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                                                {showName && !isMe && (
+                                                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isAI ? '#E83E8C' : avatarColor(msg.user_id), marginBottom: 2 }}>
+                                                        {isAI ? '✦ CLARIBB AI' : msg.user_name}
+                                                    </span>
+                                                )}
+                                                <div style={{
+                                                    maxWidth: '75%',
+                                                    padding: '0.55rem 0.85rem',
+                                                    borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+                                                    background: isMe ? 'rgba(232,62,140,0.14)' : isAI ? 'rgba(167,139,212,0.08)' : 'rgba(255,255,255,0.05)',
+                                                    border: `1px solid ${isMe ? 'rgba(232,62,140,0.22)' : isAI ? 'rgba(167,139,212,0.2)' : 'rgba(255,255,255,0.07)'}`,
+                                                }}>
+                                                    <p style={{
+                                                        color: isMe ? '#f0aece' : isAI ? 'rgba(200,180,240,0.9)' : 'rgba(255,255,255,0.75)',
+                                                        fontSize: '0.82rem', margin: 0, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                                                    }}>
+                                                        {msg.content}
+                                                    </p>
+                                                </div>
+                                                <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.15)', marginTop: 2 }}>
+                                                    {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                                {askingAI && (
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
+                                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #E83E8C, #A78BD4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', flexShrink: 0 }}>✦</div>
+                                        <div style={{ padding: '0.55rem 0.85rem', borderRadius: '12px 12px 12px 3px', background: 'rgba(167,139,212,0.08)', border: '1px solid rgba(167,139,212,0.2)' }}>
+                                            <Loader2 size={12} style={{ color: '#A78BD4', animation: 'spin 1s linear infinite' }} />
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        <div ref={bottomRef} />
+                    </div>
+
+                    {/* ── INPUT ── */}
+                    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#0a0a0a', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                            <div style={{ flex: 1, position: 'relative' }}>
+                                <textarea
+                                    value={input}
+                                    onChange={e => setInput(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            sendMessage();
+                                        }
+                                    }}
+                                    placeholder={`Message #general... (Shift+Enter for newline)`}
+                                    rows={1}
+                                    style={{
+                                        width: '100%', boxSizing: 'border-box',
+                                        padding: '0.65rem 0.85rem', borderRadius: 10,
+                                        background: '#111', border: '1px solid rgba(255,255,255,0.08)',
+                                        color: '#e0e0e0', fontSize: '0.85rem', outline: 'none',
+                                        resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
+                                        maxHeight: 120, overflowY: 'auto',
+                                    }}
+                                />
+                            </div>
+                            {/* Ask AI button */}
+                            <button
+                                onClick={askAI}
+                                disabled={!input.trim() || askingAI || sending}
+                                title="Ask CLARIBB AI"
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    padding: '0.65rem 0.9rem', borderRadius: 10,
+                                    background: input.trim() ? 'rgba(167,139,212,0.12)' : 'transparent',
+                                    border: `1px solid ${input.trim() ? 'rgba(167,139,212,0.3)' : 'rgba(255,255,255,0.06)'}`,
+                                    color: input.trim() ? '#A78BD4' : '#333',
+                                    fontSize: '0.78rem', fontWeight: 600, cursor: input.trim() ? 'pointer' : 'default',
+                                    transition: 'all 0.15s', flexShrink: 0,
+                                }}>
+                                {askingAI ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+                                Ask AI
+                            </button>
+                            {/* Send button */}
+                            <button
+                                onClick={sendMessage}
+                                disabled={!input.trim() || sending || askingAI}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: 38, height: 38, borderRadius: 10,
+                                    background: input.trim() ? '#E83E8C' : '#111',
+                                    border: `1px solid ${input.trim() ? '#E83E8C' : 'rgba(255,255,255,0.06)'}`,
+                                    color: input.trim() ? '#fff' : '#333',
+                                    cursor: input.trim() ? 'pointer' : 'default',
+                                    transition: 'all 0.15s', flexShrink: 0,
+                                }}>
+                                {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
                             </button>
                         </div>
-                        <p style={{ color: '#2a2a2a', fontSize: '0.75rem', marginTop: 24 }}>
-                            Collaborative research workspace — shared projects coming soon
+                        <p style={{ color: '#2a2a2a', fontSize: '0.65rem', marginTop: 5, marginLeft: 2 }}>
+                            Enter to send · <span style={{ color: '#333' }}>Ask AI</span> for group AI assistance · Shift+Enter for newline
                         </p>
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Sidebar: info */}
-                <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                    <div style={{ background: '#0f0f0f', border: '1px solid #1e1e1e', borderRadius: 12, padding: '1rem' }}>
-                        <p style={{ color: '#444', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>Server Info</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#444', fontSize: '0.75rem' }}>Members</span>
-                                <span style={{ color: '#888', fontSize: '0.75rem' }}>{server.members_count || 1}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#444', fontSize: '0.75rem' }}>Visibility</span>
-                                <span style={{ color: '#888', fontSize: '0.75rem' }}>{server.is_public ? 'Public' : 'Private'}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#444', fontSize: '0.75rem' }}>Your role</span>
-                                <span style={{ color: server.my_role === 'owner' ? '#E83E8C' : '#888', fontSize: '0.75rem', textTransform: 'capitalize' }}>{server.my_role || 'member'}</span>
-                            </div>
-                            {server.created_at && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#444', fontSize: '0.75rem' }}>Created</span>
-                                    <span style={{ color: '#888', fontSize: '0.75rem' }}>{new Date(server.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                {/* ── INFO PANEL ── */}
+                <AnimatePresence>
+                    {showInfo && (
+                        <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 220, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
+                            style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', background: '#080808', overflowY: 'auto', flexShrink: 0 }}>
+                            <div style={{ padding: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <p style={{ color: '#555', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Server Info</p>
+                                    <button onClick={() => setShowInfo(false)} style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: 0 }}><X size={12} /></button>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                </motion.div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                    {[
+                                        { label: 'Members', value: server.members_count || 1 },
+                                        { label: 'Visibility', value: server.is_public ? 'Public' : 'Private' },
+                                        { label: 'Your role', value: server.my_role || 'member', pink: server.my_role === 'owner' },
+                                        { label: 'Invite code', value: server.invite_code, mono: true },
+                                        { label: 'Created', value: new Date(server.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+                                    ].map(r => (
+                                        <div key={r.label}>
+                                            <p style={{ color: '#333', fontSize: '0.65rem', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.label}</p>
+                                            <p style={{ color: r.pink ? '#E83E8C' : '#666', fontSize: '0.78rem', margin: 0, fontFamily: r.mono ? 'monospace' : 'inherit' }}>{r.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ marginTop: '1.5rem', padding: '0.75rem', borderRadius: 8, background: 'rgba(232,62,140,0.06)', border: '1px solid rgba(232,62,140,0.12)' }}>
+                                    <p style={{ color: '#E83E8C', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>AI Features</p>
+                                    <p style={{ color: '#555', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
+                                        Use <strong style={{ color: '#A78BD4' }}>Ask AI</strong> to get CLARIBB to assist the group with research questions, summaries, and analysis.
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
+
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
