@@ -1389,7 +1389,7 @@ export default function WorkspacePage() {
                             animate={{ width: 320, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
                         >
                             <MemoryPanel projectId={projectId} onClose={() => setSidePanel(null)} />
@@ -1405,7 +1405,7 @@ export default function WorkspacePage() {
                             animate={{ width: 340, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'rgba(239,68,68,0.3)' }}
                         >
                             <SteelManPanel projectId={projectId} onClose={() => setSidePanel(null)} />
@@ -1421,7 +1421,7 @@ export default function WorkspacePage() {
                             animate={{ width: 340, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'rgba(6,182,212,0.3)' }}
                         >
                             <SerendipityPanel
@@ -1441,7 +1441,7 @@ export default function WorkspacePage() {
                             animate={{ width: 340, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'rgba(99,102,241,0.3)' }}
                         >
                             <BeliefEvolutionPanel projectId={projectId} onClose={() => setSidePanel(null)} />
@@ -1457,7 +1457,7 @@ export default function WorkspacePage() {
                             animate={{ width: 340, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'rgba(168,85,247,0.3)' }}
                         >
                             <TrajectoryPanel projectId={projectId} onClose={() => setSidePanel(null)} />
@@ -1473,7 +1473,7 @@ export default function WorkspacePage() {
                             animate={{ width: 260, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="shrink-0 border-l overflow-hidden"
+                            className="shrink-0 border-l overflow-x-hidden"
                             style={{ borderColor: 'var(--border)' }}
                         >
                             <SAGENoticedPanel
