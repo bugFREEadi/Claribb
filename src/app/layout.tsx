@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'CLARIBB — Multi-Agent Research Intelligence',
+    title: 'Claribb — Multi-Agent Research Intelligence',
     description: 'CLARIBB is a persistent, memory-driven AI research workspace that remembers everything across sessions, surfaces relevant context automatically, and deploys 5 specialized agents to think, search, challenge, connect, and detect conflicts on your behalf.',
     keywords: ['AI research', 'knowledge management', 'RAG', 'research assistant', 'AI memory'],
     icons: {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
         shortcut: '/favicon.svg',
     },
     openGraph: {
-        title: 'CLARIBB — Multi-Agent Research Intelligence',
+        title: 'Claribb — Multi-Agent Research Intelligence',
         description: "The AI that remembers your research, so you don't have to.",
         type: 'website',
     },
