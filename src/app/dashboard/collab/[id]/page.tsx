@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Copy, Check, Hash, Globe, Lock, ArrowLeft,
-    Loader2, Send, Sparkles, Info, X
+    Loader2, Send, Sparkles, X, Crown, UserCircle2,
+    Wifi
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
@@ -31,6 +32,13 @@ interface ChatMessage {
     role: 'user' | 'ai';
     content: string;
     created_at: string;
+}
+
+interface Member {
+    user_id: string;
+    name: string;
+    role: string;
+    online?: boolean;
 }
 
 // Stable avatar color per user
@@ -64,10 +72,14 @@ export default function ServerDetailPage() {
     const [askingAI, setAskingAI] = useState(false);
     const [copiedCode, setCopiedCode] = useState(false);
     const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
-    const [showInfo, setShowInfo] = useState(false);
+    const [showMembers, setShowMembers] = useState(true);
     const [loadingMsgs, setLoadingMsgs] = useState(true);
+    const [members, setMembers] = useState<Member[]>([]);
+    const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+    const [aiError, setAiError] = useState<string | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
     const channelRef = useRef<RealtimeChannel | null>(null);
+    const presenceChannelRef = useRef<RealtimeChannel | null>(null);
 
     // Get current user
     useEffect(() => {
@@ -93,6 +105,17 @@ export default function ServerDetailPage() {
         fetchServer();
     }, [id]);
 
+    // Fetch all members of this server
+    const fetchMembers = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/servers?members=${id}`);
+            const data = await res.json();
+            setMembers(data.members || []);
+        } catch { /* silent */ }
+    }, [id]);
+
+    useEffect(() => { fetchMembers(); }, [fetchMembers]);
+
     // Fetch initial messages
     const fetchMessages = useCallback(async () => {
         setLoadingMsgs(true);
@@ -110,7 +133,7 @@ export default function ServerDetailPage() {
 
     useEffect(() => { fetchMessages(); }, [fetchMessages]);
 
-    // Supabase Realtime subscription
+    // Supabase Realtime — chat messages
     useEffect(() => {
         const channel = supabase
             .channel(`server_chat_${id}`)
@@ -120,7 +143,6 @@ export default function ServerDetailPage() {
                 (payload) => {
                     const newMsg = payload.new as ChatMessage;
                     setMessages(prev => {
-                        // Avoid duplicates
                         if (prev.find(m => m.id === newMsg.id)) return prev;
                         return [...prev, newMsg];
                     });
@@ -131,6 +153,48 @@ export default function ServerDetailPage() {
         channelRef.current = channel;
         return () => { supabase.removeChannel(channel); };
     }, [id, supabase]);
+
+    // Supabase Presence — track who is online
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const presence = supabase.channel(`server_presence_${id}`, {
+            config: { presence: { key: currentUser.id } },
+        });
+
+        presence
+            .on('presence', { event: 'sync' }, () => {
+                const state = presence.presenceState();
+                const onlineIds = new Set(Object.keys(state));
+                setOnlineUserIds(onlineIds);
+
+                // Also update members list with any new online users not in DB yet
+                const onlineUsersInState: Record<string, Array<{ user_id?: string; name?: string }>> = state as Record<string, Array<{ user_id?: string; name?: string }>>;
+                setMembers(prev => {
+                    const existingIds = new Set(prev.map(m => m.user_id));
+                    const toAdd: Member[] = [];
+                    Object.values(onlineUsersInState).flat().forEach((u) => {
+                        if (u.user_id && !existingIds.has(u.user_id)) {
+                            toAdd.push({ user_id: u.user_id, name: u.name || 'Researcher', role: 'member', online: true });
+                        }
+                    });
+                    if (toAdd.length === 0) return prev;
+                    return [...prev, ...toAdd];
+                });
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await presence.track({
+                        user_id: currentUser.id,
+                        name: currentUser.name,
+                        online_at: new Date().toISOString(),
+                    });
+                }
+            });
+
+        presenceChannelRef.current = presence;
+        return () => { supabase.removeChannel(presence); };
+    }, [id, supabase, currentUser]);
 
     // Auto scroll
     useEffect(() => {
@@ -143,13 +207,14 @@ export default function ServerDetailPage() {
         setInput('');
         setSending(true);
         try {
-            await supabase.from('server_messages').insert({
+            const { error } = await supabase.from('server_messages').insert({
                 server_id: id,
                 user_id: currentUser.id,
                 user_name: currentUser.name,
                 role: 'user',
                 content,
             });
+            if (error) console.error('[sendMessage]', error);
         } catch (err) {
             console.error(err);
         } finally {
@@ -162,8 +227,9 @@ export default function ServerDetailPage() {
         const question = input.trim();
         setInput('');
         setAskingAI(true);
+        setAiError(null);
 
-        // First send user's message
+        // First insert user message
         await supabase.from('server_messages').insert({
             server_id: id,
             user_id: currentUser.id,
@@ -173,13 +239,30 @@ export default function ServerDetailPage() {
         });
 
         try {
-            await fetch(`/api/servers/${id}/chat`, {
+            // Get session token to send with request so server can auth user
+            const { data: { session } } = await supabase.auth.getSession();
+
+            const res = await fetch(`/api/servers/${id}/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, serverName: server.name, history: messages.slice(-10) }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+                },
+                body: JSON.stringify({
+                    question,
+                    serverName: server.name,
+                    history: messages.slice(-10),
+                }),
             });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                console.error('[askAI] API error:', res.status, errData);
+                setAiError(`AI error (${res.status}): ${errData.error || 'Unknown error'}`);
+            }
         } catch (err) {
-            console.error(err);
+            console.error('[askAI]', err);
+            setAiError('Failed to reach AI. Check your connection.');
         } finally {
             setAskingAI(false);
         }
@@ -209,15 +292,17 @@ export default function ServerDetailPage() {
         </div>
     );
 
+    const onlineCount = members.filter(m => onlineUserIds.has(m.user_id)).length;
+
     return (
-        <div style={{ height: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ height: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: "'Inter', system-ui, sans-serif" }}>
             {/* ── TOP BAR ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0a0a0a', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#080808', flexShrink: 0 }}>
                 <button onClick={() => router.push('/dashboard/collab')}
                     style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: '#555', fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
                     <ArrowLeft size={13} />
                 </button>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1a1a1a', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
                     {server.icon || '🔬'}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -232,16 +317,21 @@ export default function ServerDetailPage() {
                     </div>
                     {server.description && <p style={{ color: '#444', fontSize: '0.7rem', margin: 0 }}>{server.description}</p>}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#555', fontSize: '0.75rem' }}>
-                        <Users size={12} /> {server.members_count || 1}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {/* Online indicator */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: onlineCount > 0 ? '#10b981' : '#444', fontSize: '0.72rem' }}>
+                        <Wifi size={11} />
+                        <span>{onlineCount} online</span>
                     </div>
+                    {/* Invite code */}
                     <button onClick={copyCode} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.6rem', borderRadius: 6, background: '#111', border: '1px solid #1e1e1e', color: copiedCode ? '#E83E8C' : '#555', fontSize: '0.72rem', cursor: 'pointer' }}>
                         {copiedCode ? <Check size={10} /> : <Copy size={10} />}
                         <code style={{ fontFamily: 'monospace' }}>{server.invite_code}</code>
                     </button>
-                    <button onClick={() => setShowInfo(s => !s)} style={{ background: 'none', border: 'none', color: showInfo ? '#E83E8C' : '#444', cursor: 'pointer' }}>
-                        <Info size={15} />
+                    {/* Members toggle */}
+                    <button onClick={() => setShowMembers(s => !s)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.3rem 0.6rem', borderRadius: 6, background: showMembers ? 'rgba(232,62,140,0.08)' : 'transparent', border: `1px solid ${showMembers ? 'rgba(232,62,140,0.2)' : '#1e1e1e'}`, color: showMembers ? '#E83E8C' : '#444', fontSize: '0.72rem', cursor: 'pointer' }}>
+                        <Users size={11} /> {members.length}
                     </button>
                 </div>
             </div>
@@ -250,14 +340,14 @@ export default function ServerDetailPage() {
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
                 {/* ── CHAT ── */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    {/* Channel name */}
-                    <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                        <Hash size={12} style={{ color: '#444' }} />
-                        <span style={{ color: '#555', fontSize: '0.78rem', fontWeight: 600 }}>general</span>
+                    {/* Channel tag */}
+                    <div style={{ padding: '0.5rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <Hash size={12} style={{ color: '#333' }} />
+                        <span style={{ color: '#444', fontSize: '0.75rem', fontWeight: 600 }}>general</span>
                     </div>
 
                     {/* Messages */}
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                         {loadingMsgs ? (
                             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '3rem', color: '#333', fontSize: '0.8rem' }}>
                                 <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: 6 }} /> Loading messages...
@@ -292,8 +382,8 @@ export default function ServerDetailPage() {
 
                                             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                                                 {showName && !isMe && (
-                                                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isAI ? '#E83E8C' : avatarColor(msg.user_id), marginBottom: 2 }}>
-                                                        {isAI ? '✦ CLARIBB AI' : msg.user_name}
+                                                    <span style={{ fontSize: '0.68rem', fontWeight: 600, color: isAI ? '#A78BD4' : avatarColor(msg.user_id), marginBottom: 2 }}>
+                                                        {isAI ? '✦ Claribb AI' : msg.user_name}
                                                     </span>
                                                 )}
                                                 <div style={{
@@ -325,13 +415,18 @@ export default function ServerDetailPage() {
                                         </div>
                                     </div>
                                 )}
+                                {aiError && (
+                                    <div style={{ padding: '8px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', fontSize: '0.75rem', color: '#f87171', marginTop: 4 }}>
+                                        ⚠️ {aiError}
+                                    </div>
+                                )}
                             </>
                         )}
                         <div ref={bottomRef} />
                     </div>
 
                     {/* ── INPUT ── */}
-                    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#0a0a0a', flexShrink: 0 }}>
+                    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#080808', flexShrink: 0 }}>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                             <div style={{ flex: 1, position: 'relative' }}>
                                 <textarea
@@ -343,7 +438,7 @@ export default function ServerDetailPage() {
                                             sendMessage();
                                         }
                                     }}
-                                    placeholder={`Message #general... (Shift+Enter for newline)`}
+                                    placeholder={`Message #general…`}
                                     rows={1}
                                     style={{
                                         width: '100%', boxSizing: 'border-box',
@@ -359,7 +454,7 @@ export default function ServerDetailPage() {
                             <button
                                 onClick={askAI}
                                 disabled={!input.trim() || askingAI || sending}
-                                title="Ask CLARIBB AI"
+                                title="Ask Claribb AI"
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: 5,
                                     padding: '0.65rem 0.9rem', borderRadius: 10,
@@ -394,36 +489,101 @@ export default function ServerDetailPage() {
                     </div>
                 </div>
 
-                {/* ── INFO PANEL ── */}
+                {/* ── MEMBERS PANEL ── */}
                 <AnimatePresence>
-                    {showInfo && (
-                        <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 220, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
-                            style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', background: '#080808', overflowY: 'auto', flexShrink: 0 }}>
-                            <div style={{ padding: '1rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <p style={{ color: '#555', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Server Info</p>
-                                    <button onClick={() => setShowInfo(false)} style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: 0 }}><X size={12} /></button>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                    {[
-                                        { label: 'Members', value: server.members_count || 1 },
-                                        { label: 'Visibility', value: server.is_public ? 'Public' : 'Private' },
-                                        { label: 'Your role', value: server.my_role || 'member', pink: server.my_role === 'owner' },
-                                        { label: 'Invite code', value: server.invite_code, mono: true },
-                                        { label: 'Created', value: new Date(server.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
-                                    ].map(r => (
-                                        <div key={r.label}>
-                                            <p style={{ color: '#333', fontSize: '0.65rem', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.label}</p>
-                                            <p style={{ color: r.pink ? '#E83E8C' : '#666', fontSize: '0.78rem', margin: 0, fontFamily: r.mono ? 'monospace' : 'inherit' }}>{r.value}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div style={{ marginTop: '1.5rem', padding: '0.75rem', borderRadius: 8, background: 'rgba(232,62,140,0.06)', border: '1px solid rgba(232,62,140,0.12)' }}>
-                                    <p style={{ color: '#E83E8C', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>AI Features</p>
-                                    <p style={{ color: '#555', fontSize: '0.72rem', margin: 0, lineHeight: 1.5 }}>
-                                        Use <strong style={{ color: '#A78BD4' }}>Ask AI</strong> to get CLARIBB to assist the group with research questions, summaries, and analysis.
+                    {showMembers && (
+                        <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 200, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ borderLeft: '1px solid rgba(255,255,255,0.06)', background: '#060608', overflowY: 'auto', flexShrink: 0 }}>
+                            <div style={{ padding: '0.875rem 0.875rem 0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+                                    <p style={{ color: '#444', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+                                        Members — {members.length}
                                     </p>
+                                    <button onClick={() => setShowMembers(false)} style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: 0 }}>
+                                        <X size={12} />
+                                    </button>
                                 </div>
+
+                                {/* Online members */}
+                                {members.filter(m => onlineUserIds.has(m.user_id)).length > 0 && (
+                                    <div style={{ marginBottom: 12 }}>
+                                        <p style={{ color: '#10b981', fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>
+                                            Online — {members.filter(m => onlineUserIds.has(m.user_id)).length}
+                                        </p>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                            {members.filter(m => onlineUserIds.has(m.user_id)).map(member => (
+                                                <div key={member.user_id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '4px 6px', borderRadius: 7 }}>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <Avatar name={member.name} userId={member.user_id} size={24} />
+                                                        <div style={{ position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: '50%', background: '#10b981', border: '1.5px solid #060608' }} />
+                                                    </div>
+                                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                                        <p style={{ color: member.user_id === currentUser?.id ? '#E83E8C' : '#aaa', fontSize: '0.75rem', fontWeight: 500, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {member.name}{member.user_id === currentUser?.id ? ' (you)' : ''}
+                                                        </p>
+                                                        {member.role === 'owner' && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                                <Crown size={9} style={{ color: '#E83E8C' }} />
+                                                                <span style={{ color: '#E83E8C', fontSize: '0.58rem' }}>Owner</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Offline members */}
+                                {members.filter(m => !onlineUserIds.has(m.user_id)).length > 0 && (
+                                    <div>
+                                        <p style={{ color: '#333', fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>
+                                            Offline — {members.filter(m => !onlineUserIds.has(m.user_id)).length}
+                                        </p>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                            {members.filter(m => !onlineUserIds.has(m.user_id)).map(member => (
+                                                <div key={member.user_id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '4px 6px', borderRadius: 7, opacity: 0.5 }}>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <Avatar name={member.name} userId={member.user_id} size={24} />
+                                                        <div style={{ position: 'absolute', bottom: -1, right: -1, width: 8, height: 8, borderRadius: '50%', background: '#333', border: '1.5px solid #060608' }} />
+                                                    </div>
+                                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                                        <p style={{ color: '#555', fontSize: '0.75rem', fontWeight: 500, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {member.name}
+                                                        </p>
+                                                        {member.role === 'owner' && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                                <Crown size={9} style={{ color: '#555' }} />
+                                                                <span style={{ color: '#555', fontSize: '0.58rem' }}>Owner</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {members.length === 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, paddingTop: 20, color: '#333' }}>
+                                        <UserCircle2 size={28} />
+                                        <p style={{ fontSize: '0.72rem', margin: 0, textAlign: 'center' }}>Loading members…</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Invite section */}
+                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '0.5rem 0.875rem', paddingTop: '0.875rem' }}>
+                                <p style={{ color: '#333', fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>Invite</p>
+                                <button onClick={copyCode} style={{
+                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                                    padding: '6px 0', borderRadius: 7, background: 'rgba(232,62,140,0.07)', border: '1px solid rgba(232,62,140,0.2)',
+                                    color: '#E83E8C', fontSize: '0.72rem', cursor: 'pointer',
+                                }}>
+                                    {copiedCode ? <Check size={10} /> : <Copy size={10} />}
+                                    {copiedCode ? 'Copied!' : server.invite_code}
+                                </button>
                             </div>
                         </motion.div>
                     )}

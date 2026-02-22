@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     const isPublic = searchParams.get('public') === 'true';
     const search = searchParams.get('q') || '';
     const code = searchParams.get('code') || '';
+    const membersOfServer = searchParams.get('members') || ''; // NEW: get members of a server
 
     try {
         // Verify user via cookie-based auth
@@ -16,6 +17,47 @@ export async function GET(req: NextRequest) {
 
         // Use admin client for DB queries (bypasses RLS reliably)
         const admin = createAdminSupabaseClient();
+
+        // ── NEW: Return members list for a specific server ──
+        if (membersOfServer) {
+            // Verify requesting user is a member
+            const { data: myMembership } = await admin
+                .from('server_members')
+                .select('role')
+                .eq('server_id', membersOfServer)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (!myMembership) return NextResponse.json({ error: 'Not a member' }, { status: 403 });
+
+            // Get all members
+            const { data: members } = await admin
+                .from('server_members')
+                .select('user_id, role, joined_at')
+                .eq('server_id', membersOfServer)
+                .order('joined_at', { ascending: true });
+
+            if (!members || members.length === 0) return NextResponse.json({ members: [] });
+
+            // Get names from user_profiles for each member
+            const userIds = members.map((m: { user_id: string }) => m.user_id);
+            const { data: profiles } = await admin
+                .from('user_profiles')
+                .select('id, full_name')
+                .in('id', userIds);
+
+            const profileMap = new Map((profiles || []).map((p: { id: string; full_name: string }) => [p.id, p.full_name]));
+
+            // Also get auth metadata for fallback names
+            const membersWithNames = members.map((m: { user_id: string; role: string; joined_at: string }) => ({
+                user_id: m.user_id,
+                role: m.role,
+                joined_at: m.joined_at,
+                name: profileMap.get(m.user_id) || 'Researcher',
+            }));
+
+            return NextResponse.json({ members: membersWithNames });
+        }
 
         if (code) {
             const { data } = await admin

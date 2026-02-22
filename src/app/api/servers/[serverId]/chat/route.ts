@@ -8,10 +8,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ser
     try {
         const { serverId } = await params;
 
-        // Auth check
+        // Auth: try cookie-based first, then Bearer token fallback
+        let userId: string | null = null;
         const supabase = await createServerSupabaseClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        if (user) {
+            userId = user.id;
+        } else {
+            // Fallback: Bearer token sent from client
+            const authHeader = req.headers.get('Authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                const token = authHeader.slice(7);
+                const admin = createAdminSupabaseClient();
+                const { data: { user: tokenUser } } = await admin.auth.getUser(token);
+                if (tokenUser) userId = tokenUser.id;
+            }
+        }
+
+        if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const admin = createAdminSupabaseClient();
 
@@ -20,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ser
             .from('server_members')
             .select('role')
             .eq('server_id', serverId)
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .maybeSingle();
 
         if (!membership) return NextResponse.json({ error: 'Not a server member' }, { status: 403 });
@@ -39,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ser
             messages: [
                 {
                     role: 'system',
-                    content: `You are CLARIBB, an AI research assistant embedded in a collaborative research server called "${serverName || 'Research Server'}". 
+                    content: `You are Claribb, an AI research assistant embedded in a collaborative research server called "${serverName || 'Research Server'}". 
 You are helping a group of researchers collaborate and think together.
 Be concise, insightful, and engage with the group's discussion.
 When answering, address the group — you can say "Great question" or "Building on what was discussed..." to feel collaborative.
@@ -54,14 +69,18 @@ Keep responses focused and under 300 words unless deep analysis is explicitly ne
 
         const aiContent = response.choices[0].message.content || 'I could not generate a response.';
 
-        // Save AI message to server_messages
-        await admin.from('server_messages').insert({
+        // Save AI message using admin client (bypasses RLS — AI writes on behalf of system)
+        const { error: insertErr } = await admin.from('server_messages').insert({
             server_id: serverId,
-            user_id: user.id, // AI message attributed to triggering user's account
-            user_name: 'CLARIBB AI',
+            user_id: userId,          // attributed to the user who triggered it
+            user_name: 'Claribb AI',
             role: 'ai',
             content: aiContent,
         });
+
+        if (insertErr) {
+            console.error('[server chat AI] insert error:', insertErr);
+        }
 
         return NextResponse.json({ content: aiContent });
     } catch (err) {
