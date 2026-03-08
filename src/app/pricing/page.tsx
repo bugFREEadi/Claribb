@@ -2,8 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Check, ArrowRight, Zap, Shield, Users, Building2, ChevronDown, Star, X } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 declare global {
     interface Window {
@@ -173,6 +180,7 @@ const FAQ = [
 ];
 
 export default function PricingPage() {
+    const router = useRouter();
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
     const [paying, setPaying] = useState<string | null>(null);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -196,6 +204,14 @@ export default function PricingPage() {
         if (!plan.priceINR || plan.priceINR === 0) return;
         setPaying(plan.id);
         try {
+            // ── Auth check first ──
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                showToast('Please sign in to upgrade your plan.');
+                setTimeout(() => router.push('/auth?next=/pricing'), 1200);
+                return;
+            }
+
             const loaded = await loadRazorpay();
             if (!loaded) { showToast('Payment gateway failed to load. Please try again.'); return; }
 
@@ -204,6 +220,7 @@ export default function PricingPage() {
             // Step 1: Create order server-side
             const orderRes = await fetch('/api/payments/create-order', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ planId: plan.id, billingCycle: billingKey }),
             });
@@ -230,6 +247,7 @@ export default function PricingPage() {
                     try {
                         const verifyRes = await fetch('/api/payments/verify', {
                             method: 'POST',
+                            credentials: 'include',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 razorpay_order_id: response.razorpay_order_id,
