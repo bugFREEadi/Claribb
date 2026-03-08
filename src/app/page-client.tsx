@@ -575,7 +575,7 @@ function CodePanel({ query }: { query: string }) {
                     </button>
                 </div>
             </div>
-            {/* Code body — fully editable */}
+            {/* Code body — fully editable on desktop + mobile */}
             <div
                 ref={codeRef}
                 contentEditable
@@ -583,6 +583,8 @@ function CodePanel({ query }: { query: string }) {
                 spellCheck={false}
                 onFocus={() => setEditing(true)}
                 onBlur={() => setEditing(false)}
+                onTouchStart={() => { codeRef.current?.focus(); setEditing(true); }}
+                tabIndex={0}
                 className="px-4 py-4 font-mono text-[12.5px] leading-[1.85] outline-none"
                 style={{
                     cursor: 'text',
@@ -590,7 +592,11 @@ function CodePanel({ query }: { query: string }) {
                     whiteSpace: 'pre',
                     overflowX: 'auto',
                     minHeight: 80,
-                }}
+                    WebkitUserSelect: 'text',
+                    userSelect: 'text',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                } as React.CSSProperties}
             >
                 {code.map((line, i) => (
                     <div key={`${lang}${i}`} className="empty:h-[1.85em]">

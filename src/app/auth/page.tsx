@@ -238,8 +238,8 @@ export default function AuthPage() {
                 minHeight: '100dvh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                position: 'relative', overflow: 'hidden',
-                padding: 'env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px)',
+                position: 'relative', overflowX: 'hidden', overflowY: 'auto',
+                padding: 'max(env(safe-area-inset-top),20px) 16px max(env(safe-area-inset-bottom),24px)',
             }}>
                 {/* Ambient top glow */}
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 50% 0%, rgba(232,62,140,0.05) 0%, transparent 100%)' }} />
@@ -259,15 +259,21 @@ export default function AuthPage() {
                 ))}
                 <CSSOrbiters />
 
-                {/* Inner wrapper: row on desktop, column on mobile */}
-                <div style={{
+                {/* Inner wrapper: stacks vertically on mobile, row on desktop */}
+                <style>{`
+                    .auth-inner { flex-direction: column; }
+                    @media(min-width: 768px) { .auth-inner { flex-direction: row; align-items: center; } }
+                    .auth-sidebar { order: 1; }
+                    .auth-card   { order: 2; }
+                    .auth-mobile-logo { display: none !important; }
+                `}</style>
+                <div className="auth-inner" style={{
                     position: 'relative', zIndex: 10, width: '100%', maxWidth: 1100,
-                    display: 'flex', alignItems: 'center', gap: '3rem',
-                    flexWrap: 'wrap', justifyContent: 'center',
+                    display: 'flex', gap: '2.5rem',
+                    justifyContent: 'center',
                 }}>
-                    {/* ── LEFT SIDEBAR (hidden on small screens via CSS) ── */}
-                    <style>{`@media(max-width:767px){.auth-sidebar{display:none!important}}`}</style>
-                    <div className="auth-sidebar" style={{ flex: '1 1 400px', maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    {/* ── LEFT SIDEBAR ── */}
+                    <div className="auth-sidebar" style={{ flex: '1 1 340px', maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
                             <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
@@ -314,25 +320,17 @@ export default function AuthPage() {
                     </div>
 
                     {/* ── AUTH CARD ── */}
-                    <motion.div ref={cardRef}
+                    <motion.div ref={cardRef} className="auth-card"
                         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                         style={{
                             position: 'relative', zIndex: 10,
-                            flex: '1 1 320px', maxWidth: 480, width: '100%',
+                            flex: '1 1 300px', maxWidth: 480, width: '100%',
                             borderRadius: 14, background: '#1a0f14',
                             boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
                             padding: 'clamp(1.5rem,5vw,2.25rem) clamp(1.25rem,5vw,2.52rem)',
                             overflow: 'hidden',
                         }}>
                         <BorderEdge cardRef={cardRef} />
-                        {/* Mobile logo (shown only when sidebar is hidden) */}
-                        <style>{`@media(min-width:768px){.auth-mobile-logo{display:none!important}}`}</style>
-                        <div className="auth-mobile-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 10px rgba(232,62,140,0.9)' }} />
-                                <span style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
-                            </Link>
-                        </div>
 
                         {done ? (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '2.5rem 0' }}>
