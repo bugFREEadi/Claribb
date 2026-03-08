@@ -360,10 +360,10 @@ export default function AuthPage() {
                             </motion.div>
                         ) : (
                             <>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.54rem' }}>
-                                    <div style={{ width: 5.4, height: 5.4, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 7px rgba(232,62,140,0.85)' }} />
-                                    <span style={{ fontSize: '0.612rem', fontWeight: 500, letterSpacing: '0.13em', color: 'rgba(230,244,239,0.28)', textTransform: 'uppercase' }}>CLARIBB</span>
-                                </div>
+                                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.7rem', textDecoration: 'none', cursor: 'pointer', width: 'fit-content' }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 9px rgba(232,62,140,0.9)', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(230,244,239,0.55)', textTransform: 'uppercase' }}>CLARIBB</span>
+                                </Link>
                                 <Typewriter />
                                 <h2 style={{ fontSize: 'clamp(1.2rem,4vw,1.35rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#E6F4EF', marginBottom: '0.315rem', lineHeight: 1.3 }}>
                                     {mode === 'login' ? 'Welcome back' : 'Start researching'}
