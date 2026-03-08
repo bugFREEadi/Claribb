@@ -522,27 +522,36 @@ const CLIPBOARD_CODE: Record<string, (q: string) => string> = {
 function CodePanel({ query }: { query: string }) {
     const [lang, setLang] = useState<'python' | 'node' | 'curl'>('python');
     const [copied, setCopied] = useState(false);
-    const code = LANG_CODE[lang];
+    const [editing, setEditing] = useState(false);
+    const codeRef = useRef<HTMLDivElement>(null);
+
+    const getPlainCode = () => CLIPBOARD_CODE[lang](query);
+
     const copy = () => {
-        navigator.clipboard.writeText(CLIPBOARD_CODE[lang](query));
+        const text = codeRef.current?.innerText ?? getPlainCode();
+        navigator.clipboard.writeText(text);
         setCopied(true); setTimeout(() => setCopied(false), 2000);
     };
+
     const tabs: Array<{ id: 'python' | 'node' | 'curl'; label: string }> = [
         { id: 'python', label: 'Python' },
         { id: 'node', label: 'Node.js' },
         { id: 'curl', label: 'cURL' },
     ];
+
+    const code = LANG_CODE[lang];
     const liveCallStr = lang === 'python'
         ? 'response = client.research('
         : lang === 'node' ? 'const response = await client.research(' : '';
+
     return (
-        <div className="overflow-hidden rounded-xl" style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="overflow-hidden rounded-xl" style={{ background: 'rgba(0,0,0,0.45)', border: editing ? '1px solid rgba(167,139,212,0.3)' : '1px solid rgba(255,255,255,0.07)', transition: 'border 0.2s' }}>
             {/* Title bar */}
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Language tabs — left */}
                 <div className="flex items-center gap-4">
                     {tabs.map(tab => (
-                        <button key={tab.id} onClick={() => setLang(tab.id)}
+                        <button key={tab.id} onClick={() => { setLang(tab.id); setEditing(false); }}
                             className="text-[12px] transition-colors" style={{
                                 color: lang === tab.id ? '#F8F8F2' : '#4A5072',
                                 fontWeight: lang === tab.id ? 600 : 400,
@@ -551,8 +560,11 @@ function CodePanel({ query }: { query: string }) {
                             }}>{tab.label}</button>
                     ))}
                 </div>
-                {/* Mac dots + copy — right */}
+                {/* Right: edit indicator + mac dots + copy */}
                 <div className="flex items-center gap-3">
+                    {editing && (
+                        <span style={{ fontSize: 9, letterSpacing: '0.1em', color: '#A78BD4', fontFamily: 'monospace', opacity: 0.8 }}>EDITING</span>
+                    )}
                     <div className="flex items-center gap-1.5">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FF5F57' }} />
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#FEBC2E' }} />
@@ -563,8 +575,23 @@ function CodePanel({ query }: { query: string }) {
                     </button>
                 </div>
             </div>
-            {/* Code body */}
-            <div className="px-4 py-4 font-mono text-[12.5px] leading-[1.85]">
+            {/* Code body — fully editable */}
+            <div
+                ref={codeRef}
+                contentEditable
+                suppressContentEditableWarning
+                spellCheck={false}
+                onFocus={() => setEditing(true)}
+                onBlur={() => setEditing(false)}
+                className="px-4 py-4 font-mono text-[12.5px] leading-[1.85] outline-none"
+                style={{
+                    cursor: 'text',
+                    caretColor: '#A78BD4',
+                    whiteSpace: 'pre',
+                    overflowX: 'auto',
+                    minHeight: 80,
+                }}
+            >
                 {code.map((line, i) => (
                     <div key={`${lang}${i}`} className="empty:h-[1.85em]">
                         {line.map((seg, j) => <span key={j} style={{ color: SYN[seg.t] }}>{seg.v}</span>)}
@@ -574,13 +601,19 @@ function CodePanel({ query }: { query: string }) {
                 {lang !== 'curl' && (
                     <div className="mt-1">
                         <span style={{ color: '#909090' }}>{liveCallStr}</span>
-                        <span style={{ color: '#6BAF7E' }}>&#34;{query}</span>
+                        <span style={{ color: '#6BAF7E' }}>&quot;{query}</span>
                         <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.52, repeat: Infinity }} style={{ color: '#A78BD4' }}>▊</motion.span>
-                        <span style={{ color: '#6BAF7E' }}>&#34;</span>
+                        <span style={{ color: '#6BAF7E' }}>&quot;</span>
                         <span style={{ color: '#909090' }}>)</span>
                     </div>
                 )}
             </div>
+            {/* Click to edit hint — shown only when not editing */}
+            {!editing && (
+                <div style={{ padding: '4px 16px 8px', fontSize: 10, color: 'rgba(255,255,255,0.18)', fontFamily: 'monospace', letterSpacing: '0.06em' }}>
+                    click to edit
+                </div>
+            )}
         </div>
     );
 }
@@ -833,11 +866,11 @@ function DemoSearchBar() {
             <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center"
                 style={{ paddingBottom: 24, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 60%, transparent)', pointerEvents: 'none' }}>
                 <motion.div
-                    animate={{ width: scrolled ? 280 : 640 }}
+                    animate={{ width: scrolled ? 210 : 520 }}
                     transition={{ type: 'spring', stiffness: 260, damping: 32, mass: 0.8 }}
-                    style={{ pointerEvents: 'auto', maxWidth: 'calc(100vw - 32px)' }}>
+                    style={{ pointerEvents: 'auto', maxWidth: 'calc(100vw - 24px)' }}>
                     <form onSubmit={e => { e.preventDefault(); send(); }}
-                        className="flex items-center gap-2 px-4 py-3.5 rounded-full"
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-full"
                         style={{ background: barBg, border: `1px solid ${barBdr}`, backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', outline: 'none' }}>
                         <Search className="shrink-0" style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }} />
                         <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
