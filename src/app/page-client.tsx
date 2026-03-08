@@ -1217,8 +1217,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* ═══ USE CASES ══════════════════════════ */}
-
             {/* ═══ FAQ ════════════════════════════════ */}
             <FAQSection />
 
