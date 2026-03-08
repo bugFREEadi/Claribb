@@ -701,9 +701,13 @@ function MobileNav() {
                         Get started <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                 </div>
-                {/* Mobile: Sign in + Hamburger */}
+                {/* Mobile: Sign in + Hamburger — always same row, vertically centered */}
                 <div className="flex items-center gap-3 md:hidden">
-                    <Link href="/auth" className="text-[13px] transition-colors" style={{ color: C.muted }}>Sign in</Link>
+                    <Link href="/auth"
+                        className="inline-flex items-center text-[13px] leading-none transition-colors"
+                        style={{ color: C.muted, height: 36 }}>
+                        Sign in
+                    </Link>
                     <button
                         onClick={() => setMenuOpen(o => !o)}
                         className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
