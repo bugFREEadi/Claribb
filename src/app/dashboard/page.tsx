@@ -104,12 +104,12 @@ function DashboardContent() {
     const totalSessions = projects.reduce((sum, p) => sum + (p.session_count || 0), 0);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between mb-8"
+                className="flex flex-wrap items-start justify-between gap-4 mb-6 sm:mb-8"
             >
                 <div>
                     <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
@@ -119,7 +119,7 @@ function DashboardContent() {
                         Your persistent AI research intelligence system
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {projects.length > 0 && (
                         <button
                             onClick={() => generateDigest(projects[0].id)}
@@ -158,7 +158,7 @@ function DashboardContent() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="grid grid-cols-3 gap-4 mb-8"
+                className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8"
             >
                 {[
                     { label: 'Total Memories', value: totalMemories, icon: Database },
@@ -262,7 +262,7 @@ function DashboardContent() {
                             </div>
                         </div>
 
-                        <div className="p-6 grid grid-cols-3 gap-6">
+                        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                             {/* Connections Found */}
                             {digest.connections_found && digest.connections_found.length > 0 && (
                                 <div>

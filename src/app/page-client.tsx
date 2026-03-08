@@ -1009,23 +1009,25 @@ export default function LandingPage() {
                         </motion.div>
                     </motion.div>
 
-                    {/* Right */}
+                    {/* Right — diagram + code panel: visible on all screens, larger on desktop */}
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.5 }}
-                        className="hidden lg:flex flex-col gap-3">
-                        {/* Neural diagram — no border, transparent, blends into black */}
-                        <div className="relative overflow-hidden" style={{ height: 300, background: 'transparent', border: 'none' }}>
+                        className="flex flex-col gap-3">
+                        {/* Neural diagram */}
+                        <div className="relative overflow-hidden" style={{ height: 'clamp(180px, 26vw, 300px)', background: 'transparent', border: 'none' }}>
                             <NeuralDiagram />
-                            {/* Agent floating tags */}
-                            {AGENTS.map((ag, i) => {
-                                const pos = [{ top: '8%', left: '3%' }, { top: '8%', right: '3%' }, { bottom: '10%', left: '3%' }, { bottom: '10%', right: '3%' }];
-                                return (
-                                    <div key={ag.id} className="absolute flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold"
-                                        style={{ ...pos[i], background: active === i ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${active === i ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.10)'}`, color: active === i ? '#FFFFFF' : '#8A8A8A', transition: 'all 0.3s ease' }}>
-                                        {active === i && <motion.span className="w-1.5 h-1.5 rounded-full" style={{ background: C.pink }} animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.9, repeat: Infinity }} />}
-                                        {ag.name}
-                                    </div>
-                                );
-                            })}
+                            {/* Agent floating tags — hidden on small mobile */}
+                            <div className="hidden sm:block">
+                                {AGENTS.map((ag, i) => {
+                                    const pos = [{ top: '8%', left: '3%' }, { top: '8%', right: '3%' }, { bottom: '10%', left: '3%' }, { bottom: '10%', right: '3%' }];
+                                    return (
+                                        <div key={ag.id} className="absolute flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11.5px] font-semibold"
+                                            style={{ ...pos[i], background: active === i ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${active === i ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.10)'}`, color: active === i ? '#FFFFFF' : '#8A8A8A', transition: 'all 0.3s ease' }}>
+                                            {active === i && <motion.span className="w-1.5 h-1.5 rounded-full" style={{ background: C.pink }} animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.9, repeat: Infinity }} />}
+                                            {ag.name}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                         {/* Code panel */}
                         <CodePanel query={query} />

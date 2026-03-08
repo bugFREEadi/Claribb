@@ -233,16 +233,18 @@ export default function AuthPage() {
     return (
         <>
             <InjectCSS css={EDGE_CSS + ORBIT_CSS} />
+            {/* Mobile: full-width card centered, no sidebar. Desktop: side-by-side layout */}
             <div style={{
-                height: '100vh', background: '#000000', color: '#E6F4EF',
+                minHeight: '100dvh', background: '#000000', color: '#E6F4EF',
                 fontFamily: "'Inter', system-ui, sans-serif",
-                display: 'flex', alignItems: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative', overflow: 'hidden',
+                padding: 'env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px)',
             }}>
                 {/* Ambient top glow */}
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 50% 0%, rgba(232,62,140,0.05) 0%, transparent 100%)' }} />
 
-                {/* Falling stars — 2 only for perf */}
+                {/* Falling stars */}
                 {[
                     { startX: '88%', size: 4, dur: 5.5, delay: 0, tailLen: 22, drift: -340 },
                     { startX: '72%', size: 3, dur: 4.8, delay: 1.6, tailLen: 16, drift: -300 },
@@ -255,169 +257,164 @@ export default function AuthPage() {
                         <div style={{ width: st.size, height: st.size, borderRadius: '50%', background: '#ffffff', boxShadow: `0 0 ${st.size * 2}px ${st.size}px rgba(255,255,255,0.95)` }} />
                     </motion.div>
                 ))}
-
-                {/* CSS Orbiters (GPU-accelerated) */}
                 <CSSOrbiters />
 
-                {/* Equal left spacer */}
-                <div style={{ flex: 1 }} />
-
-                {/* ── LEFT SIDEBAR ── */}
-                <div style={{ width: 460, flexShrink: 0, padding: '2.5rem 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
-                    {/* Logo */}
-                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
-                        <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
-                    </Link>
-
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#E6F4EF', marginBottom: '0.75rem', lineHeight: 1.2 }}>
-                        Your research,<br />permanently remembered.
-                    </h1>
-
-                    <p style={{ fontSize: '0.88rem', color: 'rgba(230,244,239,0.55)', marginBottom: '1.75rem', lineHeight: 1.7, maxWidth: '500px' }}>
-                        CLARIBB builds a persistent model of your knowledge — deploying four specialized agents that think, search, challenge, and connect on your behalf.
-                    </p>
-
-                    {/* Agent live-feed card */}
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                        style={{ borderRadius: 12, border: '1px solid rgba(232,62,140,0.15)', background: 'rgba(10,18,16,0.4)', marginBottom: '2rem', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(232,62,140,0.08)' }}>
-                            <motion.div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E83E8C' }}
-                                animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }} />
-                            <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(230,244,239,0.35)' }}>What CLARIBB does</span>
-                        </div>
-                        <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {[
-                                { label: 'Recall', desc: 'Surfaces relevant memories from past sessions', color: '#E83E8C', delay: 0 },
-                                { label: 'Explorer', desc: 'Searches the web and expands your context', color: '#a855f7', delay: 0.4 },
-                                { label: 'Critique', desc: 'Identifies gaps, biases, and blind spots', color: '#3b82f6', delay: 0.8 },
-                                { label: 'Connector', desc: 'Links ideas across sessions and sources', color: '#10b981', delay: 1.2 },
-                            ].map(a => (
-                                <div key={a.label} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
-                                    <motion.div style={{ width: 6, height: 6, borderRadius: '50%', background: a.color, marginTop: 4, flexShrink: 0 }}
-                                        animate={{ opacity: [1, 0.25, 1], scale: [1, 0.7, 1] }}
-                                        transition={{ duration: 2, repeat: Infinity, delay: a.delay }} />
-                                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(230,244,239,0.55)', lineHeight: 1.5 }}>
-                                        <span style={{ fontWeight: 600, color: 'rgba(230,244,239,0.75)' }}>{a.label}</span> — {a.desc}
-                                    </p>
+                {/* Inner wrapper: row on desktop, column on mobile */}
+                <div style={{
+                    position: 'relative', zIndex: 10, width: '100%', maxWidth: 1100,
+                    display: 'flex', alignItems: 'center', gap: '3rem',
+                    flexWrap: 'wrap', justifyContent: 'center',
+                }}>
+                    {/* ── LEFT SIDEBAR (hidden on small screens via CSS) ── */}
+                    <style>{`@media(max-width:767px){.auth-sidebar{display:none!important}}`}</style>
+                    <div className="auth-sidebar" style={{ flex: '1 1 400px', maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
+                            <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
+                        </Link>
+                        <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.5rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#E6F4EF', marginBottom: '0.75rem', lineHeight: 1.2 }}>
+                            Your research,<br />permanently remembered.
+                        </h1>
+                        <p style={{ fontSize: '0.88rem', color: 'rgba(230,244,239,0.55)', marginBottom: '1.75rem', lineHeight: 1.7 }}>
+                            CLARIBB builds a persistent model of your knowledge — deploying four specialized agents that think, search, challenge, and connect on your behalf.
+                        </p>
+                        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                            style={{ borderRadius: 12, border: '1px solid rgba(232,62,140,0.15)', background: 'rgba(10,18,16,0.4)', marginBottom: '2rem', backdropFilter: 'blur(8px)', overflow: 'hidden' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', borderBottom: '1px solid rgba(232,62,140,0.08)' }}>
+                                <motion.div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E83E8C' }}
+                                    animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }} />
+                                <span style={{ fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(230,244,239,0.35)' }}>What CLARIBB does</span>
+                            </div>
+                            <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {[
+                                    { label: 'Recall', desc: 'Surfaces relevant memories from past sessions', color: '#E83E8C', delay: 0 },
+                                    { label: 'Explorer', desc: 'Searches the web and expands your context', color: '#a855f7', delay: 0.4 },
+                                    { label: 'Critique', desc: 'Identifies gaps, biases, and blind spots', color: '#3b82f6', delay: 0.8 },
+                                    { label: 'Connector', desc: 'Links ideas across sessions and sources', color: '#10b981', delay: 1.2 },
+                                ].map(a => (
+                                    <div key={a.label} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                                        <motion.div style={{ width: 6, height: 6, borderRadius: '50%', background: a.color, marginTop: 4, flexShrink: 0 }}
+                                            animate={{ opacity: [1, 0.25, 1], scale: [1, 0.7, 1] }}
+                                            transition={{ duration: 2, repeat: Infinity, delay: a.delay }} />
+                                        <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(230,244,239,0.55)', lineHeight: 1.5 }}>
+                                            <span style={{ fontWeight: 600, color: 'rgba(230,244,239,0.75)' }}>{a.label}</span> — {a.desc}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                        <div style={{ display: 'flex', gap: '2.5rem', flexWrap: 'wrap' }}>
+                            {[['247', 'Memories Indexed'], ['31', 'Sessions Analyzed'], ['74', 'Depth Score']].map(([val, label]) => (
+                                <div key={label}>
+                                    <p style={{ fontSize: '2rem', fontWeight: 700, color: '#E83E8C', margin: 0 }}>{val}</p>
+                                    <p style={{ fontSize: '0.8rem', color: 'rgba(230,244,239,0.35)', marginTop: '0.3rem' }}>{label}</p>
                                 </div>
                             ))}
                         </div>
-                    </motion.div>
-
-                    {/* Stats */}
-                    <div style={{ display: 'flex', gap: '3rem' }}>
-                        {[['247', 'Memories Indexed'], ['31', 'Sessions Analyzed'], ['74', 'Depth Score']].map(([val, label]) => (
-                            <div key={label}>
-                                <p style={{ fontSize: '2rem', fontWeight: 700, color: '#E83E8C', margin: 0 }}>{val}</p>
-                                <p style={{ fontSize: '0.8rem', color: 'rgba(230,244,239,0.35)', marginTop: '0.3rem' }}>{label}</p>
-                            </div>
-                        ))}
                     </div>
-                </div>
 
-                {/* Equal middle spacer */}
-                <div style={{ flex: 1 }} />
+                    {/* ── AUTH CARD ── */}
+                    <motion.div ref={cardRef}
+                        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                        style={{
+                            position: 'relative', zIndex: 10,
+                            flex: '1 1 320px', maxWidth: 480, width: '100%',
+                            borderRadius: 14, background: '#1a0f14',
+                            boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+                            padding: 'clamp(1.5rem,5vw,2.25rem) clamp(1.25rem,5vw,2.52rem)',
+                            overflow: 'hidden',
+                        }}>
+                        <BorderEdge cardRef={cardRef} />
+                        {/* Mobile logo (shown only when sidebar is hidden) */}
+                        <style>{`@media(min-width:768px){.auth-mobile-logo{display:none!important}}`}</style>
+                        <div className="auth-mobile-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 10px rgba(232,62,140,0.9)' }} />
+                                <span style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
+                            </Link>
+                        </div>
 
-                {/* ── AUTH CARD ── */}
-                <motion.div ref={cardRef}
-                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ position: 'relative', zIndex: 10, width: 520, flexShrink: 0, borderRadius: 14, background: '#1a0f14', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '2.25rem 2.52rem', overflow: 'hidden' }}>
-                    <BorderEdge cardRef={cardRef} />
-
-                    {done ? (
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '2.5rem 0' }}>
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 280, delay: 0.08 }}>
-                                <CheckCircle size={44} color="#E83E8C" strokeWidth={1.5} style={{ margin: '0 auto 1rem' }} />
+                        {done ? (
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '2.5rem 0' }}>
+                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 280, delay: 0.08 }}>
+                                    <CheckCircle size={44} color="#E83E8C" strokeWidth={1.5} style={{ margin: '0 auto 1rem' }} />
+                                </motion.div>
+                                <p style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.3rem', color: '#E6F4EF' }}>
+                                    {mode === 'login' ? 'Signed in' : 'Account created'}
+                                </p>
+                                <p style={{ fontSize: '0.8rem', color: 'rgba(230,244,239,0.38)' }}>Redirecting to workspace…</p>
                             </motion.div>
-                            <p style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.3rem', color: '#E6F4EF' }}>
-                                {mode === 'login' ? 'Signed in' : 'Account created'}
-                            </p>
-                            <p style={{ fontSize: '0.8rem', color: 'rgba(230,244,239,0.38)' }}>Redirecting to workspace…</p>
-                        </motion.div>
-                    ) : (
-                        <>
-                            {/* Card brand */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.54rem' }}>
-                                <div style={{ width: 5.4, height: 5.4, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 7px rgba(232,62,140,0.85)' }} />
-                                <span style={{ fontSize: '0.612rem', fontWeight: 500, letterSpacing: '0.13em', color: 'rgba(230,244,239,0.28)', textTransform: 'uppercase' }}>CLARIBB</span>
-                            </div>
-
-                            <Typewriter />
-
-                            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#E6F4EF', marginBottom: '0.315rem', lineHeight: 1.3 }}>
-                                {mode === 'login' ? 'Welcome back' : 'Start researching'}
-                            </h2>
-                            <p style={{ fontSize: '0.738rem', color: 'rgba(230,244,239,0.33)', marginBottom: '1.62rem', lineHeight: 1.5 }}>
-                                {mode === 'login' ? 'Your research memory is waiting.' : 'Create your intelligence workspace.'}
-                            </p>
-
-                            {/* Form */}
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.585rem' }}>
-                                {mode === 'signup' && (
-                                    <Field icon={User} type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} />
-                                )}
-                                <Field icon={Mail} type="email" placeholder="name@company.com" value={email} onChange={e => setEmail(e.target.value)} />
-                                <Field icon={Lock} type={showPw ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)}
-                                    right={
-                                        <button type="button" onClick={() => setShowPw(v => !v)}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'rgba(230,244,239,0.2)' }}>
-                                            {showPw ? <EyeOff size={13} strokeWidth={1.8} /> : <Eye size={13} strokeWidth={1.8} />}
-                                        </button>
-                                    }
-                                />
-
-                                {error && (
-                                    <div style={{ padding: '0.5rem 0.7rem', borderRadius: 9, fontSize: '0.8rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}>
-                                        {error}
-                                    </div>
-                                )}
-                                {success && (
-                                    <div style={{ padding: '0.5rem 0.7rem', borderRadius: 9, fontSize: '0.8rem', background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
-                                        {success}
-                                    </div>
-                                )}
-
-                                <motion.button type="submit" whileHover={{ boxShadow: '0 2px 20px rgba(232,62,140,0.28)' }} whileTap={{ scale: 0.99 }}
-                                    disabled={loading}
-                                    style={{ width: '100%', padding: '0.648rem 0.9rem', marginTop: '0.18rem', borderRadius: 8.1, border: 'none', background: '#E83E8C', color: '#ffffff', fontWeight: 700, fontSize: '0.747rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.36rem', fontFamily: 'inherit', boxShadow: '0 1px 12px rgba(232,62,140,0.18)', transition: 'box-shadow 0.2s, opacity 0.2s', opacity: loading ? 0.72 : 1 }}>
-                                    {loading ? (
-                                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, ease: 'linear', duration: 0.7 }}
-                                            style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', borderTopColor: '#fff' }} />
-                                    ) : (
-                                        <>{mode === 'login' ? 'Sign in' : 'Create Account'} <ArrowRight size={13} strokeWidth={2.5} /></>
+                        ) : (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.54rem' }}>
+                                    <div style={{ width: 5.4, height: 5.4, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 7px rgba(232,62,140,0.85)' }} />
+                                    <span style={{ fontSize: '0.612rem', fontWeight: 500, letterSpacing: '0.13em', color: 'rgba(230,244,239,0.28)', textTransform: 'uppercase' }}>CLARIBB</span>
+                                </div>
+                                <Typewriter />
+                                <h2 style={{ fontSize: 'clamp(1.2rem,4vw,1.35rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#E6F4EF', marginBottom: '0.315rem', lineHeight: 1.3 }}>
+                                    {mode === 'login' ? 'Welcome back' : 'Start researching'}
+                                </h2>
+                                <p style={{ fontSize: '0.738rem', color: 'rgba(230,244,239,0.33)', marginBottom: '1.62rem', lineHeight: 1.5 }}>
+                                    {mode === 'login' ? 'Your research memory is waiting.' : 'Create your intelligence workspace.'}
+                                </p>
+                                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.585rem' }}>
+                                    {mode === 'signup' && (
+                                        <Field icon={User} type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} />
                                     )}
-                                </motion.button>
-                            </form>
-
-                            {/* Mode switch */}
-                            <p style={{ marginTop: '1.1rem', fontSize: '0.684rem', color: 'rgba(230,244,239,0.35)', textAlign: 'center' }}>
-                                {mode === 'login' ? (
-                                    <>Don&apos;t have an account?{' '}
-                                        <button onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E83E8C', fontWeight: 600, fontSize: '0.684rem', fontFamily: 'inherit', padding: 0 }}>
-                                            Sign up
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>Already have an account?{' '}
-                                        <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E83E8C', fontWeight: 600, fontSize: '0.684rem', fontFamily: 'inherit', padding: 0 }}>
-                                            Sign in
-                                        </button>
-                                    </>
-                                )}
-                            </p>
-
-                            <p style={{ marginTop: '0.9rem', fontSize: '0.684rem', color: 'rgba(230,244,239,0.22)', textAlign: 'center' }}>
-                                By continuing, you agree to our Terms of Service and Privacy Policy.
-                            </p>
-                        </>
-                    )}
-                </motion.div>
-
-                {/* Equal right spacer */}
-                <div style={{ flex: 1 }} />
+                                    <Field icon={Mail} type="email" placeholder="name@company.com" value={email} onChange={e => setEmail(e.target.value)} />
+                                    <Field icon={Lock} type={showPw ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)}
+                                        right={
+                                            <button type="button" onClick={() => setShowPw(v => !v)}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'rgba(230,244,239,0.2)' }}>
+                                                {showPw ? <EyeOff size={13} strokeWidth={1.8} /> : <Eye size={13} strokeWidth={1.8} />}
+                                            </button>
+                                        }
+                                    />
+                                    {error && (
+                                        <div style={{ padding: '0.5rem 0.7rem', borderRadius: 9, fontSize: '0.8rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}>
+                                            {error}
+                                        </div>
+                                    )}
+                                    {success && (
+                                        <div style={{ padding: '0.5rem 0.7rem', borderRadius: 9, fontSize: '0.8rem', background: 'rgba(232,62,140,0.08)', border: '1px solid rgba(232,62,140,0.3)', color: '#E83E8C' }}>
+                                            {success}
+                                        </div>
+                                    )}
+                                    <motion.button type="submit" whileHover={{ boxShadow: '0 2px 20px rgba(232,62,140,0.28)' }} whileTap={{ scale: 0.99 }}
+                                        disabled={loading}
+                                        style={{ width: '100%', padding: '0.75rem 0.9rem', marginTop: '0.18rem', borderRadius: 8.1, border: 'none', background: '#E83E8C', color: '#ffffff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.36rem', fontFamily: 'inherit', boxShadow: '0 1px 12px rgba(232,62,140,0.18)', transition: 'box-shadow 0.2s, opacity 0.2s', opacity: loading ? 0.72 : 1 }}>
+                                        {loading ? (
+                                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, ease: 'linear', duration: 0.7 }}
+                                                style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', borderTopColor: '#fff' }} />
+                                        ) : (
+                                            <>{mode === 'login' ? 'Sign in' : 'Create Account'} <ArrowRight size={14} strokeWidth={2.5} /></>
+                                        )}
+                                    </motion.button>
+                                </form>
+                                <p style={{ marginTop: '1.1rem', fontSize: '0.75rem', color: 'rgba(230,244,239,0.35)', textAlign: 'center' }}>
+                                    {mode === 'login' ? (
+                                        <>Don&apos;t have an account?{' '}
+                                            <button onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E83E8C', fontWeight: 600, fontSize: '0.75rem', fontFamily: 'inherit', padding: 0 }}>
+                                                Sign up
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>Already have an account?{' '}
+                                            <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E83E8C', fontWeight: 600, fontSize: '0.75rem', fontFamily: 'inherit', padding: 0 }}>
+                                                Sign in
+                                            </button>
+                                        </>
+                                    )}
+                                </p>
+                                <p style={{ marginTop: '0.9rem', fontSize: '0.684rem', color: 'rgba(230,244,239,0.22)', textAlign: 'center' }}>
+                                    By continuing, you agree to our Terms of Service and Privacy Policy.
+                                </p>
+                            </>
+                        )}
+                    </motion.div>
+                </div>
             </div>
         </>
     );
