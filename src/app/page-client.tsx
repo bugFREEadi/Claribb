@@ -312,18 +312,17 @@ const FAQ_ITEMS = [
 function FAQSection() {
     const [open, setOpen] = useState<number | null>(0);
     return (
-        <section className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.black }}>
+        <section className="relative py-20 md:py-32 overflow-hidden" style={{ background: C.black }}>
             <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
-                {/* Big heading + items layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 lg:gap-16">
+                <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-10 lg:gap-20">
                     {/* Left — heading */}
                     <FadeUp>
                         <div className="lg:sticky" style={{ top: 120 }}>
                             <Eyebrow>FAQ</Eyebrow>
-                            <h2 style={{ fontSize: 'clamp(36px,7vw,84px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 12 }}>
+                            <h2 style={{ fontSize: 'clamp(48px,8vw,96px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 14 }}>
                                 FAQ
                             </h2>
-                            <p style={{ fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.7, maxWidth: 220 }}>
+                            <p style={{ fontSize: 16, color: C.muted, marginTop: 16, lineHeight: 1.75, maxWidth: 260 }}>
                                 Everything you need to know about CLARIBB.
                             </p>
                         </div>
@@ -336,21 +335,21 @@ function FAQSection() {
                                 <FadeUp key={i} delay={i * 0.04}>
                                     <div style={{ borderBottom: `1px solid ${C.border}` }}>
                                         <button
-                                            className="w-full flex items-center justify-between text-left py-6 gap-6 group"
+                                            className="w-full flex items-center justify-between text-left py-7 gap-6 group"
                                             onClick={() => setOpen(isOpen ? null : i)}
                                         >
-                                            <div className="flex items-center gap-3 sm:gap-5">
+                                            <div className="flex items-center gap-4 sm:gap-6">
                                                 {/* Number */}
-                                                <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#A78BD4', letterSpacing: '0.04em', flexShrink: 0 }}>
+                                                <span style={{ fontSize: 13, fontFamily: 'monospace', color: '#A78BD4', letterSpacing: '0.04em', flexShrink: 0 }}>
                                                     ({String(i + 1).padStart(3, '0')})
                                                 </span>
                                                 {/* Question */}
-                                                <span style={{ fontSize: 15, fontWeight: 500, color: isOpen ? C.text : '#A0A0A0', letterSpacing: '-0.015em', transition: 'color 0.25s' }}>
+                                                <span style={{ fontSize: 18, fontWeight: 500, color: isOpen ? C.text : '#B0B0B0', letterSpacing: '-0.02em', lineHeight: 1.4, transition: 'color 0.25s' }}>
                                                     {item.q}
                                                 </span>
                                             </div>
                                             {/* Toggle icon */}
-                                            <span style={{ color: isOpen ? '#A78BD4' : '#52525B', fontSize: 20, flexShrink: 0, transition: 'color 0.25s' }}>
+                                            <span style={{ color: isOpen ? '#A78BD4' : '#52525B', fontSize: 24, flexShrink: 0, transition: 'color 0.25s', fontWeight: 300 }}>
                                                 {isOpen ? '−' : '+'}
                                             </span>
                                         </button>
@@ -365,11 +364,11 @@ function FAQSection() {
                                                     transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
                                                     style={{ overflow: 'hidden' }}
                                                 >
-                                                    <div style={{ paddingBottom: 20, paddingLeft: 32 }} className="sm:pl-[68px]">
-                                                        <p style={{ fontSize: 14, lineHeight: 1.78, color: C.sec, marginBottom: 16 }}>{item.a}</p>
-                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                    <div style={{ paddingBottom: 28, paddingLeft: 36 }} className="sm:pl-[80px]">
+                                                        <p style={{ fontSize: 16, lineHeight: 1.85, color: C.sec, marginBottom: 20 }}>{item.a}</p>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                                             {item.tags.map(t => (
-                                                                <span key={t} style={{ fontSize: 11, padding: '2px 10px', borderRadius: 999, background: 'rgba(167,139,212,0.07)', color: '#A78BD4', border: '1px solid rgba(167,139,212,0.18)' }}>{t}</span>
+                                                                <span key={t} style={{ fontSize: 12, padding: '4px 14px', borderRadius: 999, background: 'rgba(167,139,212,0.07)', color: '#A78BD4', border: '1px solid rgba(167,139,212,0.18)' }}>{t}</span>
                                                             ))}
                                                         </div>
                                                     </div>
