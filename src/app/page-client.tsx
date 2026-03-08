@@ -3,7 +3,7 @@
 import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { useRef, useState, useEffect, useCallback, Suspense } from 'react';
-import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check, AlertTriangle } from 'lucide-react';
+import { Brain, ArrowRight, Network, Shield, Search, Send, X, ChevronDown, Database, GitBranch, TrendingUp, Zap, Lightbulb, Activity, Cpu, Sparkles, Copy, Check, AlertTriangle, Menu } from 'lucide-react';
 
 /* ── SSR-safe mount guard ───────────────────
    Prevents hydration mismatch for browser-only components.
@@ -274,198 +274,6 @@ function AgentSpreadCards() {
     );
 }
 
-/* ── Competitive Landscape ─────────────────── */
-const COMPETITORS = ['Claribb', 'ChatGPT', 'Perplexity', 'Notion AI', 'Obsidian+AI'];
-const COMP_HEADER_COLORS = ['#E83E8C', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)', 'rgba(255,255,255,0.5)'];
-
-type CellValue = { icon: '✅' | '❌' | '⚠️'; note?: string };
-interface CompRow { feature: string; sub?: string; cells: CellValue[] }
-
-const COMP_ROWS: CompRow[] = [
-    {
-        feature: 'Persistent memory across sessions',
-        cells: [
-            { icon: '✅', note: 'Always' },
-            { icon: '⚠️', note: 'Paid, limited' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '⚠️', note: 'Manual' },
-        ],
-    },
-    {
-        feature: 'Multi-agent parallel reasoning',
-        cells: [
-            { icon: '✅', note: '5 agents' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-        ],
-    },
-    {
-        feature: 'Semantic memory search (RAG)',
-        cells: [
-            { icon: '✅', note: 'pgvector' },
-            { icon: '❌' },
-            { icon: '⚠️', note: 'Web only' },
-            { icon: '❌' },
-            { icon: '⚠️', note: 'Plugin' },
-        ],
-    },
-    {
-        feature: 'Auto knowledge graph',
-        cells: [
-            { icon: '✅' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '⚠️', note: 'Manual' },
-        ],
-    },
-    {
-        feature: 'Conflict detection & steel manning',
-        cells: [
-            { icon: '✅' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-        ],
-    },
-    {
-        feature: 'Belief evolution tracking',
-        cells: [
-            { icon: '✅' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-        ],
-    },
-    {
-        feature: 'Research trajectory prediction',
-        cells: [
-            { icon: '✅' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-        ],
-    },
-    {
-        feature: '100% free-tier AI stack',
-        cells: [
-            { icon: '✅' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-            { icon: '❌' },
-        ],
-    },
-];
-
-function CompetitiveLandscape() {
-    const ref = useRef(null);
-    const vis = useInView(ref, { once: true, margin: '-80px' });
-
-    return (
-        <section ref={ref} className="relative py-28 overflow-hidden" style={{ background: '#000' }}>
-            <div className="relative z-10 max-w-screen-xl mx-auto px-8">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={vis ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="text-center mb-14">
-                    <Eyebrow>Competitive Landscape</Eyebrow>
-                    <h2 style={{ fontSize: 'clamp(36px,5vw,54px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.08, marginBottom: 14 }}>
-                        Claribb occupies a category<br />
-                        <em style={{ color: '#E83E8C', fontStyle: 'italic' }}>no competitor has entered</em>
-                    </h2>
-                    <p style={{ fontSize: 15, fontWeight: 300, maxWidth: 560, margin: '0 auto', color: C.sec, lineHeight: 1.7 }}>
-                        <strong style={{ color: '#fff', fontWeight: 500 }}>Personal Research Intelligence</strong> — not a search engine, not a chatbot, not a note-taking app.
-                    </p>
-                </motion.div>
-
-                {/* Table */}
-                <motion.div initial={{ opacity: 0, y: 30 }} animate={vis ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: 0.15 }}
-                    style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 680 }}>
-                        {/* Header */}
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                                <th style={{
-                                    padding: '16px 24px', textAlign: 'left', fontSize: 12,
-                                    fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.07em',
-                                    textTransform: 'uppercase', background: 'rgba(255,255,255,0.02)', width: '34%',
-                                }}>Feature</th>
-                                {COMPETITORS.map((c, i) => (
-                                    <th key={c} style={{
-                                        padding: '16px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700,
-                                        color: COMP_HEADER_COLORS[i],
-                                        background: i === 0 ? 'rgba(232,62,140,0.06)' : 'rgba(255,255,255,0.02)',
-                                        borderLeft: i === 0 ? '1px solid rgba(232,62,140,0.2)' : '1px solid rgba(255,255,255,0.05)',
-                                        borderRight: i === 0 ? '1px solid rgba(232,62,140,0.2)' : 'none',
-                                        position: 'relative',
-                                    }}>
-                                        {i === 0 && (
-                                            <div style={{
-                                                position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
-                                                background: '#E83E8C', color: '#fff', fontSize: 9, fontWeight: 800,
-                                                padding: '2px 10px', borderRadius: '0 0 8px 8px', letterSpacing: '0.08em',
-                                            }}>US</div>
-                                        )}
-                                        {c}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {COMP_ROWS.map((row, ri) => (
-                                <tr key={ri} style={{
-                                    borderBottom: ri < COMP_ROWS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                                    background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
-                                }}>
-                                    {/* Feature name */}
-                                    <td style={{ padding: '14px 24px', fontSize: 13.5, color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>
-                                        {row.feature}
-                                        {row.sub && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{row.sub}</div>}
-                                    </td>
-                                    {/* Cells */}
-                                    {row.cells.map((cell, ci) => (
-                                        <td key={ci} style={{
-                                            padding: '14px 16px', textAlign: 'center',
-                                            background: ci === 0 ? 'rgba(232,62,140,0.04)' : 'transparent',
-                                            borderLeft: ci === 0 ? '1px solid rgba(232,62,140,0.15)' : '1px solid rgba(255,255,255,0.04)',
-                                            borderRight: ci === 0 ? '1px solid rgba(232,62,140,0.15)' : 'none',
-                                        }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                                                <span style={{ fontSize: 16 }}>{cell.icon}</span>
-                                                {cell.note && (
-                                                    <span style={{
-                                                        fontSize: 10, fontWeight: 500,
-                                                        color: ci === 0 ? '#E83E8C' : 'rgba(255,255,255,0.35)',
-                                                        letterSpacing: '0.02em',
-                                                    }}>{cell.note}</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </motion.div>
-
-                {/* Footnote */}
-                <motion.div initial={{ opacity: 0 }} animate={vis ? { opacity: 1 } : {}} transition={{ delay: 0.4, duration: 0.5 }}
-                    style={{
-                        marginTop: 24, padding: '16px 24px', borderRadius: 12,
-                        background: 'rgba(167,139,212,0.06)', border: '1px solid rgba(167,139,212,0.18)',
-                    }}>
-                    <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0 }}>
-                        💡 The closest alternative would be <strong style={{ color: 'rgba(255,255,255,0.75)' }}>Perplexity + Notion AI + a PhD advisor with perfect recall</strong> — combined into one product. Claribb does all three, without the cost or complexity.
-                    </p>
-                </motion.div>
-            </div>
-        </section>
-    );
-}
 
 /* ── FAQ Section ──────────────────────────── */
 const FAQ_ITEMS = [
@@ -504,18 +312,18 @@ const FAQ_ITEMS = [
 function FAQSection() {
     const [open, setOpen] = useState<number | null>(0);
     return (
-        <section className="relative py-28 overflow-hidden" style={{ background: C.black }}>
-            <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+        <section className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.black }}>
+            <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
                 {/* Big heading + items layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-16">
+                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 lg:gap-16">
                     {/* Left — heading */}
                     <FadeUp>
                         <div className="lg:sticky" style={{ top: 120 }}>
                             <Eyebrow>FAQ</Eyebrow>
-                            <h2 style={{ fontSize: 'clamp(52px,7vw,84px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 12 }}>
+                            <h2 style={{ fontSize: 'clamp(36px,7vw,84px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 12 }}>
                                 FAQ
                             </h2>
-                            <p style={{ fontSize: 14, color: C.muted, marginTop: 16, lineHeight: 1.7, maxWidth: 220 }}>
+                            <p style={{ fontSize: 14, color: C.muted, marginTop: 12, lineHeight: 1.7, maxWidth: 220 }}>
                                 Everything you need to know about CLARIBB.
                             </p>
                         </div>
@@ -531,13 +339,13 @@ function FAQSection() {
                                             className="w-full flex items-center justify-between text-left py-6 gap-6 group"
                                             onClick={() => setOpen(isOpen ? null : i)}
                                         >
-                                            <div className="flex items-center gap-5">
+                                            <div className="flex items-center gap-3 sm:gap-5">
                                                 {/* Number */}
-                                                <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#A78BD4', letterSpacing: '0.04em', flexShrink: 0 }}>
+                                                <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#A78BD4', letterSpacing: '0.04em', flexShrink: 0 }}>
                                                     ({String(i + 1).padStart(3, '0')})
                                                 </span>
                                                 {/* Question */}
-                                                <span style={{ fontSize: 17, fontWeight: 500, color: isOpen ? C.text : '#A0A0A0', letterSpacing: '-0.015em', transition: 'color 0.25s' }}>
+                                                <span style={{ fontSize: 15, fontWeight: 500, color: isOpen ? C.text : '#A0A0A0', letterSpacing: '-0.015em', transition: 'color 0.25s' }}>
                                                     {item.q}
                                                 </span>
                                             </div>
@@ -557,7 +365,7 @@ function FAQSection() {
                                                     transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
                                                     style={{ overflow: 'hidden' }}
                                                 >
-                                                    <div style={{ paddingBottom: 24, paddingLeft: 68 }}>
+                                                    <div style={{ paddingBottom: 20, paddingLeft: 32 }} className="sm:pl-[68px]">
                                                         <p style={{ fontSize: 14, lineHeight: 1.78, color: C.sec, marginBottom: 16 }}>{item.a}</p>
                                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                                             {item.tags.map(t => (
@@ -617,7 +425,7 @@ function PipelineFlow() {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10">
                 {PIPELINE_STEPS.map((s, i) => {
                     const Icon = s.icon;
                     const isActive = activeStep === i;
@@ -805,6 +613,116 @@ const C = {
 /* ════════════════════════════════════════════
    PAGE
 ════════════════════════════════════════════ */
+
+/* ── Mobile-Responsive Navigation ─────────── */
+function MobileNav() {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const navLinks = [
+        ['Agents', '#agents'],
+        ['How it Works', '#how-it-works'],
+        ['Features', '#features'],
+        ['Pricing', '/pricing'],
+        ['Contact', '/contact'],
+    ];
+    return (
+        <div className="fixed top-0 left-0 right-0 z-50" style={{ backdropFilter: 'blur(18px)' }}>
+            {/* Announcement bar */}
+            <div className="flex items-center justify-center gap-2 py-1.5 px-4 text-[11px] sm:text-[12px] font-medium text-center"
+                style={{ background: '#CD3775', borderBottom: '1px solid rgba(0,0,0,0.2)' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-white opacity-70 shrink-0" />
+                <span style={{ color: 'rgba(255,255,255,0.92)' }}>
+                    <span className="hidden sm:inline">SPEEDRUN 2026 · Track 3 — Multi-Agent Research Intelligence</span>
+                    <span className="sm:hidden">SPEEDRUN 2026 · Multi-Agent AI</span>
+                </span>
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wide shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.28)' }}>BETA</span>
+            </div>
+
+            {/* Navbar */}
+            <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42 }}
+                className="flex items-center justify-between px-5 sm:px-8 h-14 max-w-screen-xl mx-auto"
+                style={{ background: 'rgba(0,0,0,0.92)', borderBottom: `1px solid ${C.border}` }}>
+                {/* Logo */}
+                <div className="flex items-center gap-2.5">
+                    <Brain className="w-5 h-5" style={{ color: C.sec }} />
+                    <span className="text-[15px] font-semibold tracking-tight">Claribb</span>
+                </div>
+                {/* Desktop Links */}
+                <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
+                    {navLinks.slice(0, 3).map(([l, h]) => (
+                        <a key={l} href={h} className="hover:text-white transition-colors duration-150">{l}</a>
+                    ))}
+                    <Link href="/pricing" className="hover:text-white transition-colors duration-150">Pricing</Link>
+                    <Link href="/contact" className="hover:text-white transition-colors duration-150">Contact</Link>
+                </div>
+                {/* Desktop CTAs */}
+                <div className="hidden md:flex items-center gap-3">
+                    <Link href="/auth" className="text-[13.5px] transition-colors hover:text-white" style={{ color: C.muted }}>Sign in</Link>
+                    <Link href="/auth" className="flex items-center gap-1.5 px-4 py-1.5 rounded-[8px] text-[13.5px] font-medium hover:opacity-90 transition-opacity"
+                        style={{ background: C.text, color: C.black }}>
+                        Get started <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                </div>
+                {/* Mobile: Sign in + Hamburger */}
+                <div className="flex items-center gap-3 md:hidden">
+                    <Link href="/auth" className="text-[13px] transition-colors" style={{ color: C.muted }}>Sign in</Link>
+                    <button
+                        onClick={() => setMenuOpen(o => !o)}
+                        className="flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
+                        style={{ background: menuOpen ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)', border: `1px solid ${C.border}` }}
+                        aria-label="Toggle menu"
+                    >
+                        {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                    </button>
+                </div>
+            </motion.nav>
+
+            {/* Mobile menu panel */}
+            <AnimatePresence>
+                {menuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
+                        className="md:hidden"
+                        style={{
+                            background: 'rgba(4,4,6,0.97)',
+                            backdropFilter: 'blur(20px)',
+                            borderBottom: `1px solid ${C.border}`,
+                        }}
+                    >
+                        <div className="px-5 py-4 flex flex-col gap-1">
+                            {navLinks.map(([label, href]) => (
+                                href.startsWith('#') ? (
+                                    <a key={label} href={href} onClick={() => setMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-[15px] transition-colors"
+                                        style={{ color: C.sec }}>
+                                        {label}
+                                    </a>
+                                ) : (
+                                    <Link key={label} href={href} onClick={() => setMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-[15px] transition-colors"
+                                        style={{ color: C.sec }}>
+                                        {label}
+                                    </Link>
+                                )
+                            ))}
+                            <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
+                                <Link href="/auth" onClick={() => setMenuOpen(false)}
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-[14.5px] font-medium"
+                                    style={{ background: C.text, color: C.black }}>
+                                    Get started <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 /* ── Demo Search Bar (persistent bottom bar) ── */
 function DemoSearchBar() {
     const [query, setQuery] = useState('');
@@ -1024,51 +942,15 @@ export default function LandingPage() {
             <ScrollBar />
 
             {/* ═══ FIXED HEADER (announcement + navbar) ════════════════ */}
-            <div className="fixed top-0 left-0 right-0 z-50" style={{ backdropFilter: 'blur(18px)' }}>
-                {/* ═══ ANNOUNCEMENT BAR ════════════════ */}
-                <div className="flex items-center justify-center gap-2.5 py-1.5 text-[12px] font-medium"
-                    style={{ background: '#CD3775', borderBottom: '1px solid rgba(0,0,0,0.2)' }}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white opacity-70" />
-                    <span style={{ color: 'rgba(255,255,255,0.92)' }}>SPEEDRUN 2026 · Track 3 — Multi-Agent Research Intelligence</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
-                        style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.28)' }}>BETA</span>
-                </div>
-
-                {/* ═══ NAVBAR ════════════════════════════ */}
-                <motion.nav initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42 }}
-                    className="flex items-center justify-between px-8 h-14 max-w-screen-xl mx-auto"
-                    style={{ background: 'rgba(0,0,0,0.92)', borderBottom: `1px solid ${C.border}` }}>
-                    {/* Logo */}
-                    <div className="flex items-center gap-2.5">
-                        <Brain className="w-5 h-5" style={{ color: C.sec }} />
-                        <span className="text-[15px] font-semibold tracking-tight">Claribb</span>
-                    </div>
-                    {/* Links */}
-                    <div className="hidden md:flex items-center gap-8 text-[13.5px]" style={{ color: C.muted }}>
-                        {[['Agents', '#agents'], ['How it Works', '#how-it-works'], ['Features', '#features']].map(([l, h]) => (
-                            <a key={l} href={h} className="hover:text-white transition-colors duration-150">{l}</a>
-                        ))}
-                        <Link href="/pricing" className="hover:text-white transition-colors duration-150">Pricing</Link>
-                        <Link href="/contact" className="hover:text-white transition-colors duration-150">Contact</Link>
-                    </div>
-                    {/* CTAs */}
-                    <div className="flex items-center gap-3">
-                        <Link href="/auth" className="text-[13.5px] transition-colors hover:text-white" style={{ color: C.muted }}>Sign in</Link>
-                        <Link href="/auth" className="flex items-center gap-1.5 px-4 py-1.5 rounded-[8px] text-[13.5px] font-medium hover:opacity-90 transition-opacity"
-                            style={{ background: C.text, color: C.black }}>
-                            Get started <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                    </div>
-                </motion.nav>
-            </div>
+            <MobileNav />
 
             {/* ═══ HERO ══════════════════════════════ */}
-            <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden" style={{ paddingTop: 86 }}>
+            <section ref={heroRef} className="relative min-h-[88vh] flex items-center overflow-hidden" style={{ paddingTop: 'calc(86px + env(safe-area-inset-top, 0px))' }}>
                 <HeroGrid />
                 {/* very subtle glow blob behind heading */}
                 <div className="absolute pointer-events-none" style={{ width: 580, height: 420, top: '10%', left: '8%', background: 'radial-gradient(ellipse,rgba(255,255,255,0.02) 0%,transparent 70%)', borderRadius: '50%' }} />
 
-                <div className="relative z-10 w-full max-w-screen-xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center py-14">
+                <div className="relative z-10 w-full max-w-screen-xl mx-auto px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center py-10 lg:py-14">
                     {/* Left — parallax style only applied after mount to avoid SSR mismatch */}
                     <motion.div style={mounted ? { y: heroY, opacity: heroOp } : {}}>
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}>
@@ -1077,7 +959,7 @@ export default function LandingPage() {
 
                         <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14, duration: 0.45 }}
                             className="font-bold leading-[1.06] mb-5"
-                            style={{ fontSize: 'clamp(34px,4.6vw,56px)', letterSpacing: '-0.025em' }}>
+                            style={{ fontSize: 'clamp(32px,6vw,56px)', letterSpacing: '-0.025em' }}>
                             <span style={{
                                 background: 'linear-gradient(180deg, #C8C8C8 0%, #FFFFFF 70%)',
                                 WebkitBackgroundClip: 'text',
@@ -1118,11 +1000,11 @@ export default function LandingPage() {
 
                         {/* Divider + stats */}
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
-                            className="flex items-center gap-10 mt-9 pt-8" style={{ borderTop: `1px solid ${C.border}` }}>
+                            className="flex items-center gap-6 sm:gap-10 mt-7 sm:mt-9 pt-6 sm:pt-8" style={{ borderTop: `1px solid ${C.border}` }}>
                             {[{ val: 4, s: '', lbl: 'AI Agents' }, { val: 100, s: '+', lbl: 'Depth score scale' }, { custom: '<1s', lbl: 'Memory recall' }].map((st, i) => (
                                 <div key={i}>
-                                    <div className="text-[22px] font-bold" style={{ color: C.text }}>{st.custom ?? <><AnimCounter target={st.val!} />{st.s}</>}</div>
-                                    <div className="text-[12px] mt-0.5" style={{ color: C.muted }}>{st.lbl}</div>
+                                    <div className="text-[20px] sm:text-[22px] font-bold" style={{ color: C.text }}>{st.custom ?? <><AnimCounter target={st.val!} />{st.s}</>}</div>
+                                    <div className="text-[11px] sm:text-[12px] mt-0.5" style={{ color: C.muted }}>{st.lbl}</div>
                                 </div>
                             ))}
                         </motion.div>
@@ -1164,8 +1046,8 @@ export default function LandingPage() {
             </div>
 
             {/* ═══ AGENTS ═══════════════════════════ */}
-            <section id="agents" className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
-                <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+            <section id="agents" className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.layer }}>
+                <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
                     <FadeUp className="text-center mb-16">
                         <Eyebrow>The Five Agents</Eyebrow>
                         <h2 style={{ fontSize: 'clamp(42px,5.5vw,64px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, marginBottom: 16 }}>
@@ -1178,8 +1060,8 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ HOW IT WORKS ══════════════════════ */}
-            <section id="how-it-works" className="relative py-28 overflow-hidden" style={{ background: C.black }}>
-                <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+            <section id="how-it-works" className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.black }}>
+                <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
                     <FadeUp className="text-center mb-20">
                         <Eyebrow>The Pipeline</Eyebrow>
                         <h2 style={{ fontSize: 'clamp(40px,5vw,60px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>
@@ -1191,8 +1073,8 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ FEATURES ══════════════════════ */}
-            <section id="features" className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
-                <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+            <section id="features" className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.layer }}>
+                <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
                     <FadeUp className="text-center mb-16">
                         <Eyebrow>Core Capabilities</Eyebrow>
                         <h2 style={{ fontSize: 'clamp(42px,5.5vw,64px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, marginBottom: 14 }}>
@@ -1316,8 +1198,8 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ STATS ══════════════════════════════ */}
-            <section className="relative py-20 border-y overflow-hidden" style={{ background: C.black, borderColor: C.border }}>
-                <div className="max-w-screen-xl mx-auto px-8 grid grid-cols-2 md:grid-cols-4 divide-x" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
+            <section className="relative py-14 md:py-20 border-y overflow-hidden" style={{ background: C.black, borderColor: C.border }}>
+                <div className="max-w-screen-xl mx-auto px-5 sm:px-8 grid grid-cols-2 md:grid-cols-4" style={{ gap: 0 }}>
                     {([
                         { custom: '4', s: '', lbl: 'Specialized AI Agents', sub: 'running in parallel' },
                         { custom: '<1s', s: '', lbl: 'Memory Recall', sub: 'across all sessions' },
@@ -1325,25 +1207,24 @@ export default function LandingPage() {
                         { custom: '∞', s: '', lbl: 'Knowledge Compounds', sub: 'every session builds on last' },
                     ] as { custom: string; s: string; lbl: string; sub: string }[]).map((st, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                            className="text-center py-2 px-6" style={{ borderColor: C.border }}>
-                            <div className="text-[32px] font-bold mb-1 tracking-tight">{st.custom}{st.s}</div>
-                            <div className="text-[13px] font-medium mb-0.5" style={{ color: C.text }}>{st.lbl}</div>
-                            <div className="text-[11px]" style={{ color: C.muted }}>{st.sub}</div>
+                            className="text-center py-6 px-4"
+                            style={{ borderColor: C.border, borderRight: i % 2 === 0 ? `1px solid ${C.border}` : 'none', borderBottom: i < 2 ? `1px solid ${C.border}` : 'none' }}>
+                            <div className="text-[26px] sm:text-[32px] font-bold mb-1 tracking-tight">{st.custom}{st.s}</div>
+                            <div className="text-[12px] sm:text-[13px] font-medium mb-0.5" style={{ color: C.text }}>{st.lbl}</div>
+                            <div className="text-[10px] sm:text-[11px]" style={{ color: C.muted }}>{st.sub}</div>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
             {/* ═══ USE CASES ══════════════════════════ */}
-            {/* ═══ COMPETITIVE LANDSCAPE ══════════════ */}
-            <CompetitiveLandscape />
 
             {/* ═══ FAQ ════════════════════════════════ */}
             <FAQSection />
 
             {/* ═══ WHO USES ════════════════════════════ */}
-            <section className="relative py-28 overflow-hidden" style={{ background: C.layer }}>
-                <div className="relative z-10 max-w-screen-xl mx-auto px-8">
+            <section className="relative py-16 md:py-28 overflow-hidden" style={{ background: C.layer }}>
+                <div className="relative z-10 max-w-screen-xl mx-auto px-5 sm:px-8">
                     <FadeUp className="text-center mb-14">
                         <Eyebrow>Built For</Eyebrow>
                         <h2 style={{ fontSize: 'clamp(38px,4.5vw,56px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 16 }}>Who uses <span style={{ color: '#E83E8C', fontStyle: 'italic' }}>CLARIBB</span>?</h2>
@@ -1371,22 +1252,22 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ CTA ════════════════════════════════ */}
-            <section className="relative py-32 overflow-hidden border-t" style={{ background: C.black, borderColor: C.border }}>
-                <div className="relative z-10 max-w-[720px] mx-auto px-8 text-center">
+            <section className="relative py-20 md:py-32 overflow-hidden border-t" style={{ background: C.black, borderColor: C.border }}>
+                <div className="relative z-10 max-w-[720px] mx-auto px-5 sm:px-8 text-center">
                     <FadeUp>
                         <Brain className="w-9 h-9 mx-auto mb-6" style={{ color: C.muted }} />
-                        <h2 className="text-[48px] font-bold mb-4" style={{ letterSpacing: '-0.028em' }}>
+                        <h2 className="font-bold mb-4" style={{ fontSize: 'clamp(32px, 7vw, 48px)', letterSpacing: '-0.028em' }}>
                             <span style={{ color: '#E83E8C' }}>Stop starting</span> from zero.
                         </h2>
-                        <p className="text-[15.5px] font-light mb-10" style={{ color: C.sec }}>
+                        <p className="text-[14px] sm:text-[15.5px] font-light mb-8 sm:mb-10" style={{ color: C.sec }}>
                             Build a research brain that compounds with every session. The longer you use CLARIBB, the more irreplaceable it becomes.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link href="/auth" className="flex items-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:opacity-90 transition-opacity"
+                            <Link href="/auth" className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:opacity-90 transition-opacity"
                                 style={{ background: C.text, color: C.black }}>
                                 Start for free <ArrowRight className="w-4 h-4" />
                             </Link>
-                            <a href="#agents" className="flex items-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:bg-white/[0.05] transition-colors"
+                            <a href="#agents" className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 rounded-[8px] text-[14.5px] font-medium hover:bg-white/[0.05] transition-colors"
                                 style={{ border: `1px solid rgba(255,255,255,0.16)`, color: C.text }}>
                                 Explore agents
                             </a>
@@ -1397,17 +1278,17 @@ export default function LandingPage() {
             </section>
 
             {/* ═══ FOOTER ════════════════════════════ */}
-            <footer className="border-t py-7 px-8" style={{ borderColor: C.border, background: C.black }}>
+            <footer className="border-t py-7 px-5 sm:px-8 pb-28 sm:pb-7" style={{ borderColor: C.border, background: C.black }}>
                 <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2.5">
                         <Brain className="w-4 h-4" style={{ color: C.faint }} />
                         <span className="font-semibold text-[14px]">Claribb</span>
-                        <span className="text-[13px]" style={{ color: C.faint }}> — Multi-Agent Research Intelligence</span>
+                        <span className="hidden sm:inline text-[13px]" style={{ color: C.faint }}> — Multi-Agent Research Intelligence</span>
                     </div>
-                    <div className="flex items-center gap-5 text-[12.5px]" style={{ color: C.faint }}>
+                    <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-[12px] sm:text-[12.5px]" style={{ color: C.faint }}>
                         <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
                         <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
-                        <span>Groq · Cohere · pgvector · Next.js 15</span>
+                        <span className="hidden sm:inline">Groq · Cohere · pgvector · Next.js 15</span>
                         <span className="px-2 py-0.5 rounded text-[10px]" style={{ background: 'rgba(232,62,140,0.06)', color: C.pink, border: '1px solid rgba(232,62,140,0.16)' }}>SPEEDRUN 2026</span>
                     </div>
                 </div>

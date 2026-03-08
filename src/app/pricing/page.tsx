@@ -275,14 +275,14 @@ export default function PricingPage() {
                 background: 'rgba(8,8,10,0.92)', backdropFilter: 'blur(18px)',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                         <Brain size={18} style={{ color: '#E83E8C' }} />
                         <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '-0.02em' }}>Claribb</span>
                     </Link>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                        <Link href="/" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Home</Link>
-                        <Link href="/contact" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Contact</Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Link href="/" className="hidden sm:block" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Home</Link>
+                        <Link href="/contact" className="hidden sm:block" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Contact</Link>
                         <Link href="/auth" style={{
                             fontSize: 13.5, fontWeight: 500, color: '#fff',
                             background: '#E83E8C', padding: '6px 16px', borderRadius: 8, textDecoration: 'none',

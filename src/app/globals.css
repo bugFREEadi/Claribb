@@ -76,6 +76,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   line-height: 1.6;
+  /* iOS tap highlight */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Safe area utilities for iOS notch/home bar ── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Prevent text size adjustment on orientation change ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ── Touch friendly: minimum 44px touch targets ── */
+@media (max-width: 767px) {
+
+  button,
+  a {
+    min-height: 36px;
+  }
 }
 
 /* ── Scrollbar ── */

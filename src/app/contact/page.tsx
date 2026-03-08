@@ -68,14 +68,14 @@ export default function ContactPage() {
                 background: 'rgba(8,8,10,0.92)', backdropFilter: 'blur(18px)',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                         <Brain size={18} style={{ color: '#E83E8C' }} />
                         <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: '-0.02em' }}>Claribb</span>
                     </Link>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                        <Link href="/" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Home</Link>
-                        <Link href="/pricing" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Pricing</Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Link href="/" className="hidden sm:block" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Home</Link>
+                        <Link href="/pricing" className="hidden sm:block" style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>Pricing</Link>
                         <Link href="/auth" style={{
                             fontSize: 13.5, fontWeight: 500, color: '#fff',
                             background: '#E83E8C', padding: '6px 16px', borderRadius: 8, textDecoration: 'none',
@@ -84,8 +84,8 @@ export default function ContactPage() {
                 </div>
             </nav>
 
-            <div style={{ paddingTop: 96, maxWidth: 1100, margin: '0 auto', padding: '96px 24px 80px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 64, alignItems: 'start' }}>
+            <div style={{ paddingTop: 76, maxWidth: 1100, margin: '0 auto', padding: '76px 20px 80px' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-16 items-start">
 
                     {/* LEFT — Info */}
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
@@ -168,7 +168,7 @@ export default function ContactPage() {
                     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
                         <div style={{
                             background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
-                            borderRadius: 20, padding: '36px',
+                            borderRadius: 20, padding: 'clamp(20px, 4vw, 36px)',
                         }}>
                             <AnimatePresence mode="wait">
                                 {done ? (
@@ -195,7 +195,7 @@ export default function ContactPage() {
                                         </div>
 
                                         {/* Name + Email row */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 14 }}>
                                             <div>
                                                 <label style={labelStyle}>Name <span style={{ color: '#E83E8C' }}>*</span></label>
                                                 <input value={form.name} onChange={set('name')} placeholder="Adi Shukla" required style={inputStyle} />
