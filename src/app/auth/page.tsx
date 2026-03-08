@@ -278,21 +278,18 @@ export default function AuthPage() {
                 ))}
                 <CSSOrbiters />
 
-                {/* Inner wrapper: stacks vertically on mobile, row on desktop */}
+                {/* Inner wrapper */}
                 <style>{`
-                    .auth-inner { flex-direction: column; }
-                    @media(min-width: 768px) { .auth-inner { flex-direction: row; align-items: center; } }
-                    .auth-sidebar { order: 1; }
-                    .auth-card   { order: 2; }
-                    .auth-mobile-logo { display: none !important; }
+                    .auth-sidebar { display: none; }
+                    @media(min-width: 768px) { .auth-sidebar { display: flex; } }
                 `}</style>
-                <div className="auth-inner" style={{
+                <div style={{
                     position: 'relative', zIndex: 10, width: '100%', maxWidth: 1100,
-                    display: 'flex', gap: '2.5rem',
+                    display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '2.5rem',
                     justifyContent: 'center',
                 }}>
-                    {/* ── LEFT SIDEBAR ── */}
-                    <div className="auth-sidebar" style={{ flex: '1 1 340px', maxWidth: 460, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    {/* ── LEFT SIDEBAR (desktop only) ── */}
+                    <div className="auth-sidebar" style={{ flex: '1 1 340px', maxWidth: 460, flexDirection: 'column', justifyContent: 'center' }}>
                         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.8rem', textDecoration: 'none' }}>
                             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E83E8C', boxShadow: '0 0 12px rgba(232,62,140,0.9)' }} />
                             <span style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.08em', color: '#E6F4EF' }}>CLARIBB</span>
