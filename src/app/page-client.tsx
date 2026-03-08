@@ -836,7 +836,7 @@ function DemoSearchBar() {
                             <div className="relative">
                                 <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
                                     style={{ height: 36, background: 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)' }} />
-                                <div ref={chatRef} className="pointer-events-auto flex flex-col gap-3 max-h-64 overflow-y-auto pr-1" style={{ scrollbarWidth: 'none' }}>
+                                <div ref={chatRef} className="pointer-events-auto flex flex-col gap-2 overflow-y-auto pr-1" style={{ scrollbarWidth: 'none', maxHeight: 'min(200px, 35vh)' }}>
                                     {messages.map((m, i) => (
                                         <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
                                             className={`text-[13.5px] leading-relaxed px-4 py-3 rounded-2xl ${m.role === 'user' ? 'self-end max-w-[80%]' : 'self-start max-w-[90%]'}`}
@@ -874,41 +874,42 @@ function DemoSearchBar() {
 
             {/* ── bottom bar ── */}
             <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center"
-                style={{ paddingBottom: 24, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 60%, transparent)', pointerEvents: 'none' }}>
+                style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 60%, transparent)', pointerEvents: 'none' }}>
                 <motion.div
                     animate={{ width: scrolled ? 210 : 520 }}
                     transition={{ type: 'spring', stiffness: 260, damping: 32, mass: 0.8 }}
                     style={{ pointerEvents: 'auto', maxWidth: 'calc(100vw - 24px)' }}>
                     <form onSubmit={e => { e.preventDefault(); send(); }}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-full"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-full"
                         style={{ background: barBg, border: `1px solid ${barBdr}`, backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', outline: 'none' }}>
-                        <Search className="shrink-0" style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }} />
+                        <Search className="shrink-0" style={{ width: 13, height: 13, color: 'rgba(255,255,255,0.3)' }} />
                         <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-                            placeholder={scrolled ? 'Try CLARIBB...' : 'Ask anything — CLARIBB remembers your research...'}
-                            className="flex-1 bg-transparent outline-none ring-0 focus:outline-none focus:ring-0 text-[13.5px] placeholder:transition-all"
+                            placeholder={scrolled ? 'Try CLARIBB...' : 'Ask anything...'}
+                            className="flex-1 min-w-0 bg-transparent outline-none ring-0 focus:outline-none focus:ring-0 text-[13px] placeholder:transition-all"
                             style={{ color: '#E0E0E0', caretColor: '#E83E8C', boxShadow: 'none' }} />
+                        {/* Send button */}
                         <button type="submit" disabled={loading || !query.trim()}
-                            className="flex items-center justify-center w-7 h-7 rounded-full transition-all"
+                            className="flex items-center justify-center w-6 h-6 rounded-full transition-all shrink-0"
                             style={{ background: query.trim() ? '#A78BD4' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                            <Send style={{ width: 11, height: 11, color: query.trim() ? '#fff' : 'rgba(255,255,255,0.3)' }} />
+                            <Send style={{ width: 10, height: 10, color: query.trim() ? '#fff' : 'rgba(255,255,255,0.3)' }} />
                         </button>
-                        {/* X — clear input only */}
+                        {/* X — clear */}
                         {query.trim() && (
                             <button type="button" onClick={() => setQuery('')}
-                                className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
-                                style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
-                                title="Clear input">
-                                <X style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)' }} />
+                                className="flex items-center justify-center w-6 h-6 rounded-full transition-all hover:bg-white/10 shrink-0"
+                                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                                title="Clear">
+                                <X style={{ width: 10, height: 10, color: 'rgba(255,255,255,0.4)' }} />
                             </button>
                         )}
-                        {/* Minimize — hide/show chat */}
+                        {/* Minimize */}
                         {messages.length > 0 && (
                             <button type="button" onClick={() => setChatHidden(h => !h)}
-                                className="flex items-center justify-center w-7 h-7 rounded-full transition-all hover:bg-white/10"
-                                style={{ border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
-                                title={chatHidden ? 'Show chat' : 'Minimize chat'}>
-                                <ChevronDown style={{ width: 12, height: 12, color: chatHidden ? '#A78BD4' : 'rgba(255,255,255,0.4)', transform: chatHidden ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                                className="flex items-center justify-center w-6 h-6 rounded-full transition-all hover:bg-white/10 shrink-0"
+                                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                                title={chatHidden ? 'Show chat' : 'Hide chat'}>
+                                <ChevronDown style={{ width: 11, height: 11, color: chatHidden ? '#A78BD4' : 'rgba(255,255,255,0.4)', transform: chatHidden ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                             </button>
                         )}
                     </form>
